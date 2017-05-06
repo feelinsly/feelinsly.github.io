@@ -1,0 +1,381 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  #undef TEST
+    2:  /****************************************************************************
+    3:   Module
+    4:       pwms12.c
+    5:  
+    6:   Description
+    7:       This is a module implementing 3 channels of PWM on the 9S12C32
+    8:   Notes
+    9:       As implemented, resolution is fixed at 1%
+   10:  
+   11:   History
+   12:   When           Who     What/Why
+   13:   -------------- ---     --------
+   14:   06/15/04 17:35 jec      fixed bug in SetPeriod, prescale B was overwriting
+   15:                           the prescale A, should have been |=, not =
+   16:   06/15/04 08:49 jec      added code for SetPeriod & SetDuty
+   17:   06/07/04 18:09 jec      Began Coding
+   18:  ****************************************************************************/
+   19:  
+   20:  /*----------------------------- Include Files -----------------------------*/
+   21:  #include <hidef.h>         /* common defines and macros */
+   22:  #include <mc9s12c32.h>     /* derivative information */
+   23:  #include <S12C32bits.h>    /* bit definitions  */
+   24:  #include <PWMS12.h>
+   25:  #include <stdio.h>
+   26:  /*--------------------------- External Variables --------------------------*/
+   27:  
+   28:  /*----------------------------- Module Defines ----------------------------*/
+   29:  #define INITIAL_PERIOD 0x401E
+   30:  #define MAX_CHANNELS   3
+   31:  /* mask to isolate pre-sale value in PERIOD parameter */
+   32:  #define PRESCALER_MASK  0xf000
+   33:  /* shift to get that pre-scaler in the right place for pre-scale clock A */
+   34:  #define PRESCALE_SHIFT 12
+   35:  /* amount to shift the pre-scaler to get it moved for pre-scale clock B */
+   36:  #define PRE_B_SHIFT    4
+   37:  /* mask to isolate the scale value in the PERIOD parameter */
+   38:  #define SCALER_MASK     0x03FF
+   39:  
+   40:  /*------------------------------ Module Types -----------------------------*/
+   41:  
+   42:  /*---------------------------- Module Functions ---------------------------*/
+   43:  
+   44:  /*---------------------------- Module Variables ---------------------------*/
+   45:  static unsigned char * const DutyRegisters[] = { &PWMDTY0, &PWMDTY1, &PWMDTY2};
+   46:  
+   47:  
+   48:  /*------------------------------ Module Code ------------------------------*/
+   49:  /****************************************************************************
+   50:   Function
+   51:       PWMS12_Init
+   52:  
+   53:   Parameters
+   54:       none
+   55:  
+   56:   Returns
+   57:       None.
+   58:  
+   59:   Description
+   60:       Initializes the PWM subsystem to 500Hz, 1% resolution, 0%DC,
+   61:   Notes
+   62:       None.
+   63:  
+   64:   Author
+   65:       J. Edward Carryer, 06/07/04 14:00
+   66:  ****************************************************************************/
+   67:  void PWMS12_Init(void)
+   68:  {
+*** EVALUATION ***
+
+Function: PWMS12_Init
+Source  : U:\_Samples\PWMS12\PWMS12\PWMS12.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\PWMS12.c.o" -WmsgSd1106 -WmsgSd1420
+
+   69:     unsigned char i;
+   70:     PWMS12_SetPeriod(INITIAL_PERIOD, PWMS12_GRP0);
+  0000 cc401e       [2]     LDD   #16414
+  0003 6cad         [2]     STD   3,-SP
+  0005 c7           [1]     CLRB  
+  0006 160000       [4]     JSR   PWMS12_SetPeriod
+   71:     PWMS12_SetPeriod(INITIAL_PERIOD, PWMS12_GRP1);
+  0009 cc401e       [2]     LDD   #16414
+  000c 6c80         [2]     STD   0,SP
+  000e c601         [1]     LDAB  #1
+  0010 160000       [4]     JSR   PWMS12_SetPeriod
+  0013 3a           [3]     PULD  
+   72:     /* set polarity to DC = high time */
+   73:     PWMPOL = (_S12_PPOL0 | _S12_PPOL1 | _S12_PPOL2);
+  0014 cc6407       [2]     LDD   #25607
+  0017 5b00         [2]     STAB  _PWMPOL
+   74:     PWMPER0 = PWMS12_MAX_DC;
+  0019 5a00         [2]     STAA  _PWMPER01
+   75:     PWMPER1 = PWMS12_MAX_DC;
+  001b 5a00         [2]     STAA  _PWMPER01:1
+   76:     PWMPER2 = PWMS12_MAX_DC;
+  001d 5a00         [2]     STAA  _PWMPER23
+   77:     for ( i=0; i< MAX_CHANNELS; i++)
+  001f c7           [1]     CLRB  
+   78:     {
+   79:          PWMS12_SetDuty(0, i);  /* start all channels off at 0% */
+  0020 6b80         [2]     STAB  0,SP
+  0022 c7           [1]     CLRB  
+  0023 37           [2]     PSHB  
+  0024 e681         [3]     LDAB  1,SP
+  0026 160000       [4]     JSR   PWMS12_SetDuty
+  0029 e6a0         [3]     LDAB  1,+SP
+  002b 52           [1]     INCB  
+  002c c103         [1]     CMPB  #3
+  002e 25f0         [3/1]   BCS   *-14 ;abs = 0020
+   80:     }
+   81:     /* map PWM to PORT T */
+   82:     MODRR |= (_S12_MODRR0 | _S12_MODRR1 | _S12_MODRR2 );
+  0030 1c000007     [4]     BSET  _MODRR,#7
+   83:     /* enable the PWM subsytem on channels 0-2 */
+   84:     PWME |= (_S12_PWME0 | _S12_PWME1 | _S12_PWME2);
+  0034 4c0007       [4]     BSET  _PWME,#7
+   85:  
+   86:  }
+  0037 32           [3]     PULA  
+  0038 3d           [5]     RTS   
+   87:  
+   88:  /****************************************************************************
+   89:   Function
+   90:       PWMS12_SetDuty
+   91:  
+   92:   Parameters
+   93:       unsigned char Num, the number of the timer to set.
+   94:  
+   95:   Returns
+   96:       PWMS12_ERR if requested timer does not exist
+   97:       PWMS12_OK  otherwise
+   98:  
+   99:   Description
+  100:       sets the duty cycle for a PWM channel.
+  101:  
+  102:   Notes
+  103:       None.
+  104:  
+  105:   Author
+  106:       J. Edward Carryer, 06/15/04 08:25
+  107:  ****************************************************************************/
+  108:  signed char PWMS12_SetDuty(unsigned char dutyCycle, unsigned char channel)
+  109:  {
+*** EVALUATION ***
+
+Function: PWMS12_SetDuty
+Source  : U:\_Samples\PWMS12\PWMS12\PWMS12.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\PWMS12.c.o" -WmsgSd1106 -WmsgSd1420
+
+  110:      if ((channel >= MAX_CHANNELS) || (dutyCycle > PWMS12_MAX_DC))
+  0000 c103         [1]     CMPB  #3
+  0002 2406         [3/1]   BCC   *+8 ;abs = 000a
+  0004 a682         [3]     LDAA  2,SP
+  0006 8164         [1]     CMPA  #100
+  0008 2303         [3/1]   BLS   *+5 ;abs = 000d
+  111:          return PWMS12_ERR;
+  000a c6ff         [1]     LDAB  #255
+  000c 3d           [5]     RTS   
+  112:      else
+  113:          *DutyRegisters[channel] = dutyCycle;
+  000d 87           [1]     CLRA  
+  000e 59           [1]     LSLD  
+  000f b745         [1]     TFR   D,X
+  0011 ede20000     [4]     LDY   DutyRegisters,X
+  0015 e682         [3]     LDAB  2,SP
+  0017 6b40         [2]     STAB  0,Y
+  114:      return PWMS12_OK;
+  0019 c7           [1]     CLRB  
+  115:  }
+  001a 3d           [5]     RTS   
+  116:  
+  117:  /****************************************************************************
+  118:   Function
+  119:       PWMS12_SetPeriod
+  120:  
+  121:   Parameters
+  122:       unsigned short newPeriod, the new period to set. This is an encoded form
+  123:       of the constants to be programmed into the PWM pre-scaler & scaler. It
+  124:       should be one of the pre-defined constants or created as an unsigned short
+  125:       using the the form:
+  126:       pre-scale exponent(upper 4 bits) : scaler multiplier (lower 10 bits)
+  127:       the scaler multiplier should be a value between 0 & 512, with 0 indicating
+  128:       that the scaler should not be used and CLKx used directly.
+  129:       for example: with a 24MHz busclock for a 500Hz rate at 1% resolution the
+  130:       pre-scaler should be 16, exponent = 4. The scaler multiplier should be
+  131:       30. the constant should be: 0x401E
+  132:       with a 24MHz busclock for a 240kHz rate at 1% resolution, the pre-scaler
+  133:       should be 1 (exponent=0), no scale multiplier, use CLKx directly, the
+  134:       constant should be 0x0000
+  135:  
+  136:       unsigned char group, one of the two channel groups to which the new period
+  137:       should be applied. Channels 0 & 1 are in group 0 (PWMS12_GRP0), channels 2
+  138:       is in group 1 (PWMS12_GRP1)
+  139:  
+  140:   Returns
+  141:       signed char PWMS12_ERR for error PWMS12_OK for success
+  142:  
+  143:   Description
+  144:       decodes the period and programs the appropriate values into the pre-scaler,
+  145:       scaler and clock select bits.
+  146:  
+  147:   Notes
+  148:       None.
+  149:  
+  150:   Author
+  151:       J. Edward Carryer, 06/15/04 08:35
+  152:  ****************************************************************************/
+  153:  signed char PWMS12_SetPeriod(unsigned short newPeriod, unsigned char group)
+  154:  {
+*** EVALUATION ***
+
+Function: PWMS12_SetPeriod
+Source  : U:\_Samples\PWMS12\PWMS12\PWMS12.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\PWMS12.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6bac         [2]     STAB  4,-SP
+  155:      unsigned char UseScaler = ((newPeriod & SCALER_MASK) != 0);
+  0002 ec86         [3]     LDD   6,SP
+  0004 8403         [1]     ANDA  #3
+  0006 046402       [3]     TBNE  D,*+5 ;abs = 000b
+  0009 c7           [1]     CLRB  
+  000a 8f           [2]     SKIP2 
+  000b c601         [1]     LDAB  #1
+  000d 6b83         [2]     STAB  3,SP
+  156:      unsigned char ScalerValue =
+  000f ec86         [3]     LDD   6,SP
+  0011 8403         [1]     ANDA  #3
+  0013 49           [1]     LSRD  
+  0014 6b82         [2]     STAB  2,SP
+  157:         (unsigned char)((newPeriod & SCALER_MASK) >> 1);
+  158:      unsigned char PreScaleValue =
+  0016 ec86         [3]     LDD   6,SP
+  0018 c7           [1]     CLRB  
+  0019 84f0         [1]     ANDA  #240
+  001b b746         [1]     TFR   D,Y
+  001d c60c         [1]     LDAB  #12
+  001f 160000       [4]     JSR   _ISHRU
+  0022 6b81         [2]     STAB  1,SP
+  159:         (unsigned char)((newPeriod & PRESCALER_MASK) >> PRESCALE_SHIFT);
+  160:  //    printf("UseScaler %x, ScalerValue %x, PreScaleVlau %x \r\n", UseScaler, ScalerValue, PreScaleValue);
+  161:      if ( group == PWMS12_GRP0)
+  0024 e680         [3]     LDAB  0,SP
+  0026 261a         [3/1]   BNE   *+28 ;abs = 0042
+  162:      {
+  163:          PWMCLK &= ~(_S12_PCLK0 | _S12_PCLK1);  /* choose clock A as default*/
+  0028 4d0003       [4]     BCLR  _PWMCLK,#3
+  164:          if ( UseScaler)
+  002b e683         [3]     LDAB  3,SP
+  002d 2707         [3/1]   BEQ   *+9 ;abs = 0036
+  165:          {
+  166:              PWMCLK |= (_S12_PCLK0 | _S12_PCLK1);  /* choose clock SA */
+  002f 4c0003       [4]     BSET  _PWMCLK,#3
+  167:              PWMSCLA = ScalerValue;
+  0032 e682         [3]     LDAB  2,SP
+  0034 5b00         [2]     STAB  _PWMSCLA
+  168:          }
+  169:          /* set pre-scaler for clock A */
+  170:          /* clear releavant bits first */
+  171:          PWMPRCLK &= ~(_S12_PCKA0 | _S12_PCKA1 | _S12_PCKA2);
+  0036 4d0007       [4]     BCLR  _PWMPRCLK,#7
+  172:          PWMPRCLK |= PreScaleValue;
+  0039 d600         [3]     LDAB  _PWMPRCLK
+  003b ea81         [3]     ORAB  1,SP
+  003d 5b00         [2]     STAB  _PWMPRCLK
+  173:      }
+  174:      else if ( group == PWMS12_GRP1)
+  175:      {
+  176:          PWMCLK &= ~(_S12_PCLK2 | _S12_PCLK3);  /* choose clock B as default*/
+  177:          if ( UseScaler)
+  178:          {
+  179:              PWMCLK |= (_S12_PCLK2 | _S12_PCLK3);  /* choose clock SB */
+  180:              PWMSCLB = ScalerValue;
+  181:          }
+  182:          /* set pre-scaler for clock b */
+  183:          PWMPRCLK &= ~(_S12_PCKB0 | _S12_PCKB1 |  _S12_PCKB2);
+  184:          PWMPRCLK |= PreScaleValue << PRE_B_SHIFT;
+  185:       }
+  186:       else
+  187:              return PWMS12_ERR;
+  188:       return PWMS12_OK;
+  003f c7           [1]     CLRB  
+  0040 201f         [3]     BRA   *+33 ;abs = 0061
+  0042 04211a       [3]     DBNE  B,*+29 ;abs = 005f
+  0045 4d000c       [4]     BCLR  _PWMCLK,#12
+  0048 e683         [3]     LDAB  3,SP
+  004a 2707         [3/1]   BEQ   *+9 ;abs = 0053
+  004c 4c000c       [4]     BSET  _PWMCLK,#12
+  004f e682         [3]     LDAB  2,SP
+  0051 5b00         [2]     STAB  _PWMSCLB
+  0053 4d0070       [4]     BCLR  _PWMPRCLK,#112
+  0056 c610         [1]     LDAB  #16
+  0058 a681         [3]     LDAA  1,SP
+  005a 12           [1]     MUL   
+  005b da00         [3]     ORAB  _PWMPRCLK
+  005d 20de         [3]     BRA   *-32 ;abs = 003d
+  005f c6ff         [1]     LDAB  #255
+  189:  }
+  0061 1b84         [2]     LEAS  4,SP
+  0063 3d           [5]     RTS   
+  190:  
+  191:  /****************************************************************************
+  192:   Function
+  193:       PWMS12_End
+  194:  
+  195:   Parameters
+  196:       None.
+  197:  
+  198:   Returns
+  199:       None
+  200:  
+  201:   Description
+  202:       Disables the PWM sub-system.
+  203:  
+  204:   Notes
+  205:       Simply returns control of the lines to Port T. It does not force the
+  206:       outputs to a particular state, or even force the lines to be outputs.
+  207:  
+  208:   Author
+  209:       J. Edward Carryer, 06/015/04 09:45
+  210:  ****************************************************************************/
+  211:  void PWMS12_End(void)
+  212:  {
+*** EVALUATION ***
+
+Function: PWMS12_End
+Source  : U:\_Samples\PWMS12\PWMS12\PWMS12.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\PWMS12.c.o" -WmsgSd1106 -WmsgSd1420
+
+  213:     /* undo map of PWM to PORT T */
+  214:     MODRR &= ~(_S12_MODRR0 | _S12_MODRR1 | _S12_MODRR2 );
+  0000 1d000007     [4]     BCLR  _MODRR,#7
+  215:     /* disable the PWM subsytem on channels 0-2 */
+  216:     PWME &= ~(_S12_PWME0 | _S12_PWME1 | _S12_PWME2);
+  0004 4d0007       [4]     BCLR  _PWME,#7
+  217:  }
+  0007 3d           [5]     RTS   
+  218:  /*------------------------------- Footnotes -------------------------------*/
+  219:  #ifdef TEST
+  220:  
+  221:  #include <stdio.h>
+  222:  #include < me218_C32.h>
+  223:  #include <timerS12.h>
+  224:  #include "pwmS12.h"
+  225:  
+  226:  #define STEP_DELAY 610
+  227:  #define MIN_RAMP 0
+  228:  #define MAX_RAMP 100
+  229:  
+  230:  void main(void)
+  231:  {
+  232:     unsigned char i;
+  233:     TMRS12_Init(TMRS12_RATE_8MS);
+  234:     PWMS12_Init();
+  235:     /* set channel 2 to 250Hz */
+  236:     PWMS12_SetPeriod(PWMS12_4000US, PWMS12_GRP1);
+  237:     printf("Ramping DC from %d-%d%% in 10%% steps at 5 second intervals\r\n",
+  238:           MIN_RAMP, MAX_RAMP);
+  239:     puts("Starting\r\n");
+  240:  
+  241:     for ( i=MIN_RAMP; i<=MAX_RAMP; i+=10)
+  242:     {
+  243:          PWMS12_SetDuty(i, PWMS12_CHAN0);
+  244:          PWMS12_SetDuty(i+10, PWMS12_CHAN1);
+  245:          PWMS12_SetDuty(i+20, PWMS12_CHAN2);
+  246:          printf("Outputting %d%%Duty Cycle\r",i);
+  247:          TMRS12_InitTimer(0, STEP_DELAY); /* STEP_DELAY  = 5s w/ 8.19mS interval */
+  248:          while(TMRS12_IsTimerExpired(0) != TMRS12_EXPIRED)
+  249:              ;
+  250:     }
+  251:     PWMS12_End();
+  252:     TMRS12_InitTimer(0, STEP_DELAY); /* STEP_DELAY  = 5s w/ 8.19mS interval */
+  253:     while(TMRS12_IsTimerExpired(0) != TMRS12_EXPIRED)
+  254:        ;
+  255:  }
+  256:  #endif
+  257:  /*------------------------------ End of file ------------------------------*/
+  258:  
+  259:  

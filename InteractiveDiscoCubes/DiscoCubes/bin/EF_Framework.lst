@@ -1,0 +1,373 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /****************************************************************************
+    2:   Module
+    3:       EF_Framework.c
+    4:   Description
+    5:       source file for the top level functions of the EF framework
+    6:   Notes
+    7:       Users should only modify the contents of the SMList array.
+    8:   History
+    9:   When           Who     What/Why
+   10:   -------------- ---     --------
+   11:   10/17/11 12:24 jec      started coding
+   12:  *****************************************************************************/
+   13:  
+   14:  #include <stdio.h>
+   15:  #include <ME218_C32.h>
+   16:  #include "misc.h"
+   17:  #include "EF_General.h"
+   18:  #include "EF_PostList.h"
+   19:  #include "EF_CheckEvents.h"
+   20:  #include "EF_Framework.h"
+   21:  #include "EF_FrameworkPrivate.h"
+   22:  
+   23:  // Include the header files for the state machines.
+   24:  // This gets you the prototypes for the public state machine functions.
+   25:  
+   26:  #include "DiscoCubesSM.h"
+   27:  
+   28:  // You fill in this array with the names of the state machine functions
+   29:  // for each state machine that you use.
+   30:  // The order is: InitFunction, PostFunction, QueueQueryFunction, RunFunction
+   31:  // The first enry, at index 0, is the highest priority, with decreasing priority
+   32:  // with higher indices
+   33:  static EF_SMDesc const SMDescList[] =
+   34:  { {InitDiscoCubesSM, PostDiscoCubesSM, IsDiscoCubesSMQEmpty, RunDiscoCubesSM }, /* highest priority */
+   35:  };
+   36:  
+   37:  // Initialize this variable with the name of the posting function that you
+   38:  // want executed when a new keystroke is detected. The default initialization
+   39:  // distributes keystrokes to all state machines
+   40:  static pPostFunc const pPostKeyFunc = EF_PostAll;
+   41:  
+   42:  
+   43:  /****************************************************************************
+   44:   Leave Everything below this line alone!!
+   45:  *****************************************************************************/
+   46:  //*********************************
+   47:  // private function prototypes
+   48:  //*********************************
+   49:  
+   50:  static boolean CheckSystemEvents( void );
+   51:  
+   52:  //*********************************
+   53:  // Implementation
+   54:  //*********************************
+   55:  
+   56:  /****************************************************************************
+   57:   Function
+   58:     EF_Initialize
+   59:   Parameters
+   60:     None
+   61:   Returns
+   62:     EF_Return_t : FailedPointer if any of the function pointers are NULL
+   63:                   FailedInit if any of the initialization functions failed
+   64:   Description
+   65:     Initialize all the state machines and tests for NULL pointers in the array
+   66:   Notes
+   67:  
+   68:   Author
+   69:     J. Edward Carryer, 10/23/11,
+   70:  ****************************************************************************/
+   71:  EF_Return_t EF_Initialize( void ){
+*** EVALUATION ***
+
+Function: EF_Initialize
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Framework.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Framework.c.o" -WmsgSd1106 -WmsgSd1420
+
+   72:    unsigned char i;
+   73:    // loop through the list testing for NULL pointers and
+   74:    // executing the init functions
+   75:    for ( i=0; i< ARRAY_SIZE(SMDescList); i++) {
+  0000 69af         [2]     CLR   1,-SP
+   76:      if ( (SMDescList[i].InitFunc == (pInitFunc)0) ||
+  0002 e680         [3]     LDAB  0,SP
+  0004 87           [1]     CLRA  
+  0005 59           [1]     LSLD  
+  0006 59           [1]     LSLD  
+  0007 59           [1]     LSLD  
+  0008 b745         [1]     TFR   D,X
+  000a eee20000     [4]     LDX   SMDescList,X
+  000e 2718         [3/1]   BEQ   *+26 ;abs = 0028
+   77:           (SMDescList[i].PostFunc == (pPostFunc)0) ||
+  0010 b745         [1]     TFR   D,X
+  0012 eee20000     [4]     LDX   SMDescList:2,X
+  0016 2710         [3/1]   BEQ   *+18 ;abs = 0028
+   78:           (SMDescList[i].QEmptyFunc == (pQEmptyFunc)0) ||
+  0018 b745         [1]     TFR   D,X
+  001a eee20000     [4]     LDX   SMDescList:4,X
+  001e 2708         [3/1]   BEQ   *+10 ;abs = 0028
+   79:           (SMDescList[i].RunFunc == (pRunFunc)0) )
+  0020 b745         [1]     TFR   D,X
+  0022 eee20000     [4]     LDX   SMDescList:6,X
+  0026 2604         [3/1]   BNE   *+6 ;abs = 002c
+   80:        return FailedPointer; // protect against NULL pointers
+  0028 c603         [1]     LDAB  #3
+  002a 2016         [3]     BRA   *+24 ;abs = 0042
+   81:  
+   82:      if ( SMDescList[i].InitFunc() != True )
+  002c b746         [1]     TFR   D,Y
+  002e 15eb0000     [7]     JSR   [SMDescList,Y]
+  0032 040104       [3]     DBEQ  B,*+7 ;abs = 0039
+   83:        return FailedInit; // this is a failed initialization
+  0035 c605         [1]     LDAB  #5
+  0037 2009         [3]     BRA   *+11 ;abs = 0042
+  0039 6280         [3]     INC   0,SP
+  003b e680         [3]     LDAB  0,SP
+  003d c101         [1]     CMPB  #1
+  003f 25c1         [3/1]   BCS   *-61 ;abs = 0002
+   84:    }
+   85:    return Success;
+  0041 c7           [1]     CLRB  
+  0042 87           [1]     CLRA  
+   86:  }
+  0043 1b81         [2]     LEAS  1,SP
+  0045 3d           [5]     RTS   
+   87:  
+   88:  /****************************************************************************
+   89:   Function
+   90:     EF_Run
+   91:   Parameters
+   92:     None
+   93:   Returns
+   94:     EF_Return_t : FailedRun is any of the run functions failed during execution
+   95:   Description
+   96:     This is the main framework function. It searches through the state
+   97:     machines to find one with a non-empty queue and then executes the
+   98:     state machine to process the event in its queue.
+   99:     while all the queues are empty, it searches for system generated or
+  100:     user generated events.
+  101:   Notes
+  102:     this function only returns in case of an error
+  103:   Author
+  104:     J. Edward Carryer, 10/23/11,
+  105:  ****************************************************************************/
+  106:  EF_Return_t EF_Run( void ){
+*** EVALUATION ***
+
+Function: EF_Run
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Framework.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Framework.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9d         [2]     LEAS  -3,SP
+  107:  
+  108:    unsigned char i;
+  109:    while(1){ // stay here unless we detect an error condition
+  110:  
+  111:      // loop through the list executing the run functions for state machines
+  112:      // with a non-empty queue
+  113:      do{
+  114:        for ( i=0; i< ARRAY_SIZE(SMDescList); i++) {
+  0002 6982         [2]     CLR   2,SP
+  115:          if ( SMDescList[i].QEmptyFunc() != True ) { // queue not empty, run SM
+  0004 e682         [3]     LDAB  2,SP
+  0006 87           [1]     CLRA  
+  0007 59           [1]     LSLD  
+  0008 59           [1]     LSLD  
+  0009 59           [1]     LSLD  
+  000a b746         [1]     TFR   D,Y
+  000c 6c80         [2]     STD   0,SP
+  000e 15eb0000     [7]     JSR   [SMDescList:4,Y]
+  0012 04010e       [3]     DBEQ  B,*+17 ;abs = 0023
+  116:              if( SMDescList[i].RunFunc() != True ) {
+  0015 ed80         [3]     LDY   0,SP
+  0017 15eb0000     [7]     JSR   [SMDescList:6,Y]
+  001b 04010d       [3]     DBEQ  B,*+16 ;abs = 002b
+  117:                return FailedRun;
+  001e c602         [1]     LDAB  #2
+  0020 87           [1]     CLRA  
+  0021 2018         [3]     BRA   *+26 ;abs = 003b
+  0023 6282         [3]     INC   2,SP
+  0025 e682         [3]     LDAB  2,SP
+  0027 c101         [1]     CMPB  #1
+  0029 25d9         [3/1]   BCS   *-37 ;abs = 0004
+  118:              }
+  119:              break; // if state machine ran, it might have posted an event
+  120:                     // so re-start the queue checking
+  121:          }
+  122:        }
+  123:  
+  124:      }while ( i != ARRAY_SIZE(SMDescList) ); // any queue not empty
+  002b e682         [3]     LDAB  2,SP
+  002d 0431d2       [3]     DBNE  B,*-43 ;abs = 0002
+  125:      
+  126:      // all the queues are empty, so look for new system or user detected events
+  127:      if (CheckSystemEvents() == False)
+  0030 160000       [4]     JSR   CheckSystemEvents
+  0033 0471cc       [3]     TBNE  B,*-49 ;abs = 0002
+  128:        EF_CheckUserEvents();
+  0036 160000       [4]     JSR   EF_CheckUserEvents
+  0039 20c7         [3]     BRA   *-55 ;abs = 0002
+  129:    }
+  130:  }
+  003b 1b83         [2]     LEAS  3,SP
+  003d 3d           [5]     RTS   
+  131:  
+  132:  /****************************************************************************
+  133:   Function
+  134:     EF_PostAll
+  135:   Parameters
+  136:     EF_Event : The Event to be posted
+  137:   Returns
+  138:     boolean : False if any of the post functions failed during execution
+  139:   Description
+  140:     posts to all of the state machine's queues by calling all of the post
+  141:     functions in SMDescList
+  142:   Notes
+  143:  
+  144:   Author
+  145:     J. Edward Carryer, 10/23/11,
+  146:  ****************************************************************************/
+  147:  boolean EF_PostAll( EF_Event ThisEvent){
+*** EVALUATION ***
+
+Function: EF_PostAll
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Framework.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Framework.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6cad         [2]     STD   3,-SP
+  0002 34           [2]     PSHX  
+  148:  
+  149:    unsigned char i;
+  150:    // loop through the list executing the post functions
+  151:    for ( i=0; i< ARRAY_SIZE(SMDescList); i++) {
+  0003 6984         [2]     CLR   4,SP
+  152:      if ( SMDescList[i].PostFunc == (pPostFunc)0)
+  0005 e684         [3]     LDAB  4,SP
+  0007 87           [1]     CLRA  
+  0008 59           [1]     LSLD  
+  0009 59           [1]     LSLD  
+  000a 59           [1]     LSLD  
+  000b b745         [1]     TFR   D,X
+  000d eee20000     [4]     LDX   SMDescList:2,X
+  0011 2715         [3/1]   BEQ   *+23 ;abs = 0028
+  153:        break; // protect against NULL pointers
+  154:      if ( SMDescList[i].PostFunc( ThisEvent ) != True )
+  0013 b746         [1]     TFR   D,Y
+  0015 ec82         [3]     LDD   2,SP
+  0017 ee80         [3]     LDX   0,SP
+  0019 15eb0000     [7]     JSR   [SMDescList:2,Y]
+  001d 042108       [3]     DBNE  B,*+11 ;abs = 0028
+  0020 6284         [3]     INC   4,SP
+  0022 e684         [3]     LDAB  4,SP
+  0024 c101         [1]     CMPB  #1
+  0026 25dd         [3/1]   BCS   *-33 ;abs = 0005
+  155:        break; // this is a failed post
+  156:    }
+  157:    if ( i == ARRAY_SIZE(SMDescList) ) // if no failures
+  0028 e684         [3]     LDAB  4,SP
+  002a c101         [1]     CMPB  #1
+  002c 2601         [3/1]   BNE   *+3 ;abs = 002f
+  158:      return (True);
+  002e 21           [1]     SKIP1 
+  159:    else
+  160:      return(False);
+  002f c7           [1]     CLRB  
+  161:  }
+  0030 1b85         [2]     LEAS  5,SP
+  0032 3d           [5]     RTS   
+  162:  
+  163:  /****************************************************************************
+  164:   Function
+  165:     EF_PostToSM
+  166:   Parameters
+  167:     unsigned char : Which state machine to post to (index into SMDescList)
+  168:     EF_Event : The Event to be posted
+  169:   Returns
+  170:     boolean : False if the post function failed during execution
+  171:   Description
+  172:     posts to one of the state machine's queues by calling the post
+  173:     functions in SMDescList[ WhichMachine ]
+  174:   Notes
+  175:     used by the timer library to associate a timer with a state machine
+  176:   Author
+  177:     J. Edward Carryer, 10/23/11,
+  178:  ****************************************************************************/
+  179:  boolean EF_PostToSM( unsigned char WhichMachine, EF_Event TheEvent){
+*** EVALUATION ***
+
+Function: EF_PostToSM
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Framework.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Framework.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+  180:    if ( WhichMachine < ARRAY_SIZE(SMDescList) )
+  0002 e686         [3]     LDAB  6,SP
+  0004 c101         [1]     CMPB  #1
+  0006 240f         [3/1]   BCC   *+17 ;abs = 0017
+  181:      return SMDescList[WhichMachine].PostFunc( TheEvent );
+  0008 ee80         [3]     LDX   0,SP
+  000a 87           [1]     CLRA  
+  000b 59           [1]     LSLD  
+  000c 59           [1]     LSLD  
+  000d 59           [1]     LSLD  
+  000e b746         [1]     TFR   D,Y
+  0010 ec82         [3]     LDD   2,SP
+  0012 15eb0000     [7]     JSR   [SMDescList:2,Y]
+  0016 21           [1]     SKIP1 
+  182:    else
+  183:      return False;
+  0017 c7           [1]     CLRB  
+  184:  }
+  0018 1b84         [2]     LEAS  4,SP
+  001a 3d           [5]     RTS   
+  185:  
+  186:  
+  187:  //*********************************
+  188:  // private functions
+  189:  //*********************************
+  190:  /****************************************************************************
+  191:   Function
+  192:     CheckSystemEvents
+  193:   Parameters
+  194:     None
+  195:   Returns
+  196:     boolean : True if a system event was detected
+  197:   Description
+  198:     check for system generated events and uses pPostKeyFunc to post to one
+  199:     of the state machine's queues
+  200:   Notes
+  201:     currently only tests for incoming keystrokes
+  202:   Author
+  203:     J. Edward Carryer, 10/23/11, 
+  204:  ****************************************************************************/
+  205:  static boolean CheckSystemEvents( void ){
+*** EVALUATION ***
+
+Function: CheckSystemEvents
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Framework.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Framework.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9c         [2]     LEAS  -4,SP
+  206:    
+  207:    if ( kbhit() != 0 ) // new key waiting?
+  0002 160000       [4]     JSR   kbhit
+  0005 044416       [3]     TBEQ  D,*+25 ;abs = 001e
+  208:    {
+  209:      EF_Event ThisEvent;
+  210:      ThisEvent.EventType = EF_NEW_KEY;
+  0008 c602         [1]     LDAB  #2
+  000a 87           [1]     CLRA  
+  000b 6c80         [2]     STD   0,SP
+  211:      ThisEvent.EventParam = getchar();
+  000d cc0000       [2]     LDD   #channels
+  0010 160000       [4]     JSR   fgetc
+  0013 6c82         [2]     STD   2,SP
+  212:      (*pPostKeyFunc)( ThisEvent );
+  0015 ee80         [3]     LDX   0,SP
+  0017 15fb0000     [7]     JSR   [pPostKeyFunc,PCR]
+  213:      return True;
+  001b c601         [1]     LDAB  #1
+  001d 21           [1]     SKIP1 
+  214:    }
+  215:    return False;
+  001e c7           [1]     CLRB  
+  216:  }
+  001f 1b84         [2]     LEAS  4,SP
+  0021 3d           [5]     RTS   
+  217:  
+  218:  

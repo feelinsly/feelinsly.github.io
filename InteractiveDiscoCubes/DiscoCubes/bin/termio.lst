@@ -1,0 +1,84 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  #include <termio.h>
+    2:  #include <mc9s12c32.h>     /* derivative information */
+    3:  #include <s12sci.h>
+    4:  
+    5:  char TERMIO_GetChar(void) {
+*** EVALUATION ***
+
+Function: TERMIO_GetChar
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\termio.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\termio.c.o" -WmsgSd1106 -WmsgSd1420
+
+    6:    /* receives character from the terminal channel */
+    7:      while (!(SCISR1 & _S12_RDRF))
+  0000 4f0020fc     [4]     BRCLR _SCISR1,#32,*+0 ;abs = 0000
+    8:      {}; /* wait for input */
+    9:      return SCIDRL;
+  0004 d600         [3]     LDAB  _SCIDRL
+   10:  }
+  0006 3d           [5]     RTS   
+   11:  
+   12:  void TERMIO_PutChar(char ch) {
+*** EVALUATION ***
+
+Function: TERMIO_PutChar
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\termio.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\termio.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 37           [2]     PSHB  
+   13:    /* sends a character to the terminal channel */
+   14:      while (!(SCISR1 & _S12_TDRE))
+  0001 4f0080fc     [4]     BRCLR _SCISR1,#128,*+0 ;abs = 0001
+   15:      {};  /* wait for output buffer empty */
+   16:      SCIDRL = ch;
+  0005 33           [3]     PULB  
+  0006 5b00         [2]     STAB  _SCIDRL
+   17:  }
+  0008 3d           [5]     RTS   
+   18:  
+   19:  void TERMIO_Init(void) {
+*** EVALUATION ***
+
+Function: TERMIO_Init
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\termio.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\termio.c.o" -WmsgSd1106 -WmsgSd1420
+
+   20:    /* initializes the communication channel */
+   21:  /* set baud rate to 115.2 kbaud and turn on Rx and Tx */
+   22:  
+   23:          SCIBD = 13;
+  0000 c60d         [1]     LDAB  #13
+  0002 87           [1]     CLRA  
+  0003 5c00         [2]     STD   _SCIBD
+   24:          SCICR2 = (_S12_TE | _S12_RE);
+  0005 53           [1]     DECB  
+  0006 5b00         [2]     STAB  _SCICR2
+   25:  }
+  0008 3d           [5]     RTS   
+   26:  
+   27:  int kbhit(void) {
+*** EVALUATION ***
+
+Function: kbhit
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\termio.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\termio.c.o" -WmsgSd1106 -WmsgSd1420
+
+   28:    /* checks for a character from the terminal channel */
+   29:      if (SCISR1 & _S12_RDRF)
+  0000 4f002003     [4]     BRCLR _SCISR1,#32,*+7 ;abs = 0007
+   30:              return 1;
+  0004 c601         [1]     LDAB  #1
+  0006 21           [1]     SKIP1 
+   31:      else
+   32:              return 0;
+  0007 c7           [1]     CLRB  
+  0008 87           [1]     CLRA  
+   33:  
+   34:  }
+  0009 3d           [5]     RTS   
+   35:  
+   36:  
+   37:  

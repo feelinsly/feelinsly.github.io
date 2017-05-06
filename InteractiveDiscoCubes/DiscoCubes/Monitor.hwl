@@ -1,0 +1,12 @@
+OPEN source 0 0 76 70
+Source < attributes MARKS off
+OPEN procedure 76 0 24 32
+Procedure < attributes VALUES on,TYPES off
+OPEN data 49 70 46 30
+Data:1 < attributes SCOPE global,COMPLEMENT None,FORMAT Symb,MODE automatic,UPDATERATE 10,NAMEWIDTH 16
+OPEN data 0 70 49 30
+Data:2 < attributes SCOPE local,COMPLEMENT None,FORMAT Symb,MODE automatic,UPDATERATE 10,NAMEWIDTH 16
+bckcolor 50331647
+font 'Courier New' 9 BLACK
+AUTOSIZE off
+ACTIVATE Data:2 Data:1 Procedure Source 

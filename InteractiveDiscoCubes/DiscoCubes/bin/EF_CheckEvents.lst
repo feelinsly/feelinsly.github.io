@@ -1,0 +1,89 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /****************************************************************************
+    2:   Module
+    3:       EF_CheckEvents.c
+    4:   Description
+    5:       source file for the module to call the User event checking routines
+    6:   Notes
+    7:       Users should only modify the contents of the EF_EventList array.
+    8:   History
+    9:   When           Who     What/Why
+   10:   -------------- ---     --------
+   11:   10/16/11 12:32 jec      started coding
+   12:  *****************************************************************************/
+   13:  
+   14:  #include "misc.h"
+   15:  #include "EF_Events.h"
+   16:  #include "EF_General.h"
+   17:  #include "EF_CheckEvents.h"
+   18:  
+   19:  // Include the header files for the module(s) with your event checkers. 
+   20:  // This gets you the prototypes for the post functions.
+   21:  
+   22:  #include "EventCheckers.h"
+   23:  
+   24:  // Fill in this array with the names of your event checking functions
+   25:  
+   26:  static CheckFunc * const EF_EventList[]={Check4ButtonPushed,Check4IRUpLimitSwitch,Check4IRDownLimitSwitch,Check4CubeCorrect };
+   27:  
+   28:  /****************************************************************************
+   29:   Leave Everything below this line alone!!
+   30:  *****************************************************************************/
+   31:  
+   32:  // Implementation for public functions
+   33:  
+   34:  /****************************************************************************
+   35:   Function
+   36:     EF_CheckUserEvents
+   37:   Parameters
+   38:     None
+   39:   Returns
+   40:     True if any of the user event checkers returned True, False otherwise
+   41:   Description
+   42:     loop through the EF_EventList array executing the event checking functions
+   43:   Notes
+   44:     
+   45:   Author
+   46:     J. Edward Carryer, 10/25/11, 08:55
+   47:  ****************************************************************************/
+   48:  boolean EF_CheckUserEvents( void ) 
+   49:  {
+*** EVALUATION ***
+
+Function: EF_CheckUserEvents
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_CheckEvents.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_CheckEvents.c.o" -WmsgSd1420
+
+   50:    unsigned char i;
+   51:    // loop through the array executing the event checking functions
+   52:    for ( i=0; i< ARRAY_SIZE(EF_EventList); i++) {
+  0000 69af         [2]     CLR   1,-SP
+   53:      if ( EF_EventList[i]() == True )
+  0002 e680         [3]     LDAB  0,SP
+  0004 87           [1]     CLRA  
+  0005 59           [1]     LSLD  
+  0006 b746         [1]     TFR   D,Y
+  0008 15eb0000     [7]     JSR   [EF_EventList,Y]
+  000c 040108       [3]     DBEQ  B,*+11 ;abs = 0017
+  000f 6280         [3]     INC   0,SP
+  0011 e680         [3]     LDAB  0,SP
+  0013 c104         [1]     CMPB  #4
+  0015 25eb         [3/1]   BCS   *-19 ;abs = 0002
+   54:        break; // found a new event, so process it first
+   55:    }
+   56:    if ( i == ARRAY_SIZE(EF_EventList) ) // if no new events
+  0017 e680         [3]     LDAB  0,SP
+  0019 c104         [1]     CMPB  #4
+  001b 2602         [3/1]   BNE   *+4 ;abs = 001f
+   57:      return (False);
+  001d c7           [1]     CLRB  
+  001e 8f           [2]     SKIP2 
+   58:    else
+   59:      return(True);
+  001f c601         [1]     LDAB  #1
+   60:  }
+  0021 32           [3]     PULA  
+  0022 3d           [5]     RTS   
+   61:  

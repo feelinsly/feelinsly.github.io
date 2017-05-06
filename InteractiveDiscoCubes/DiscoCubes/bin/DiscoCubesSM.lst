@@ -1,0 +1,1996 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /*----------------------------- Include Files -----------------------------*/
+    2:  /* include header files for this state machine as well as any machines at the
+    3:     next lower level in the hierarchy that are sub-machines to this machine
+    4:  */
+    5:  #include "misc.h"
+    6:  #include "EF_General.h"
+    7:  #include "EF_Queue.h"
+    8:  #include "EF_Events.h"
+    9:  #include "EF_Timers.h"
+   10:  #include "EF_PostList.h"
+   11:  #include "DiscoCubesSM.h"
+   12:  #include <Bin_Const.h>
+   13:  #include "ADS12.h"
+   14:  #include "PWMS12.h"
+   15:  #include <math.h>
+   16:  #include <stdio.h>
+   17:  #include <stdlib.h>
+   18:  #include <string.h>
+   19:  #include <ME218_C32.h>
+   20:  
+   21:  /*----------------------------- Module Defines ----------------------------*/
+   22:  #define QUEUE_SIZE 3
+   23:  #define NO_OF_CUBES 5
+   24:  #define BLUE B16(00000000,00000010)
+   25:  #define GREEN B16(00000000,00000100)
+   26:  #define RED B16(00000000,00001000)
+   27:  
+   28:  /*---------------------------- Module Functions ---------------------------*/
+   29:  /* prototypes for private functions for this machine.They should be functions
+   30:     relevant to the behavior of this state machine*/
+   31:  void InitAnswers(void);
+   32:  unsigned int ReadDifficultyKnob( void);
+   33:  void PulseSCKU4U5(void);
+   34:  void PulseRCKU4U5(void);
+   35:  void PulseSCKU1(void);
+   36:  void PulseRCKU1(void);
+   37:  void StartMotorUp(unsigned int difficulty);
+   38:  void StartMotorDown(unsigned int difficulty);
+   39:  void DisplayAnswer( void);
+   40:  char RandColor(void);
+   41:  void TurnOnCubeLEDs(void);
+   42:  unsigned int IncreaseMotorSpeed(int difficulty);
+   43:  void Switch2Colors( void); 
+   44:  void ActivateBuzzer(uint16_t param);
+   45:  void ClearAllLEDs(void);
+   46:  void UpdateUsersAnswer(uint16_t param);
+   47:  void YouWinLEDMessage(void);
+   48:  void AlternatePillars(void);
+   49:  void StopAllMotors(void);
+   50:  char* GetComputersAnswer(void);
+   51:  uint16_t GetStartTime(void);
+   52:  boolean CompareAnswers(void);
+   53:  
+   54:  
+   55:  
+   56:  
+   57:  /*---------------------------- Module Variables ---------------------------*/
+   58:  // everybody needs a state variable, you may need others as well.
+   59:  // type of state variable should match htat of enum in header file
+   60:  static DiscoCubesState_t CurrentState;
+   61:  
+   62:  static char computersanswer[NO_OF_CUBES];
+   63:  static char usersanswer[NO_OF_CUBES];
+   64:  static uint16_t start_time;
+   65:  static boolean game_over;
+   66:  static unsigned int PanelLED;
+   67:  
+   68:  // everybody needs a queue too!
+   69:  static EF_Event SMQueue[QUEUE_SIZE+1];
+   70:  
+   71:  
+   72:  /*------------------------------ Module Code ------------------------------*/
+   73:  /****************************************************************************
+   74:   Function
+   75:       InitDiscoCubesSM
+   76:  
+   77:   Parameters
+   78:       None
+   79:  
+   80:   Returns
+   81:       boolean, False if error in initialization, True otherwise
+   82:  
+   83:   Description
+   84:       Sets up the event queue and does any rother equired initialization for
+   85:       this state machine
+   86:   Notes
+   87:  
+   88:   Author
+   89:       J. Edward Carryer, 10/23/11, 18:55
+   90:  ****************************************************************************/
+   91:  boolean InitDiscoCubesSM ( void )
+   92:  {
+*** EVALUATION ***
+
+Function: InitDiscoCubesSM
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+   93:    unsigned char ucResult1;
+   94:    EF_Event ThisEvent;
+   95:  
+   96:    ucResult1 = EF_InitQueue( SMQueue, ARRAY_SIZE(SMQueue) );
+  0000 cc0000       [2]     LDD   #SMQueue
+  0003 6caa         [2]     STD   6,-SP
+  0005 c604         [1]     LDAB  #4
+  0007 160000       [4]     JSR   EF_InitQueue
+  000a 1b82         [2]     LEAS  2,SP
+   97:    if ( ucResult1 ==  QUEUE_SIZE ) // successful queue init
+  000c c103         [1]     CMPB  #3
+  000e 265f         [3/1]   BNE   *+97 ;abs = 006f
+   98:    {
+   99:      // put us into the Initial PseudoState
+  100:      CurrentState = Dormant; //Initialize to the dormant state
+  0010 c7           [1]     CLRB  
+  0011 87           [1]     CLRA  
+  0012 7c0000       [3]     STD   CurrentState
+  101:      
+  102:      //Ports 0 1 and 2 are set to PWM in the PWM init method.
+  103:      //Port 0 controls motor 1, Port 1 controls motors 2,3.
+  104:      DDRT &= BIT4LO;//Set PTT4 as input for 74HC165 for Magnetic Reed Switches
+  0015 1d000010     [4]     BCLR  _DDRT,#16
+  105:      DDRT |= BIT5HI;//Set PTT5 as output to L293B for enable
+  0019 1c000020     [4]     BSET  _DDRT,#32
+  106:      DDRT &= BIT6LO;//Set PTT6 as input for sensing IR limit switch state (down)
+  001d 1d000040     [4]     BCLR  _DDRT,#64
+  107:      DDRT &= BIT7LO;//Set PTT7 as input for sensing IR limit switch state (up) 
+  0021 1d000080     [4]     BCLR  _DDRT,#128
+  108:      
+  109:      
+  110:      DDRM |= BIT0HI;//Set PTM0 as output to RCK of shift register for Cube LEDs
+  0025 1c000001     [4]     BSET  _DDRM,#1
+  111:      DDRM |= BIT1HI;//Set PTM1 as output to datainput of shift register for Cube LEDs
+  0029 1c000002     [4]     BSET  _DDRM,#2
+  112:      
+  113:      /*Port initialization for instruction LED in front panel*/
+  114:      DDRM |= BIT2HI;// Set Port M2 as output to Datainput of Shift Register for LED panel 
+  002d 1c000004     [4]     BSET  _DDRM,#4
+  115:      DDRM |= BIT3HI;//Set Port M3 as output to RCK of both 74hc595s for LED panel
+  0031 1c000008     [4]     BSET  _DDRM,#8
+  116:      DDRM |= BIT4HI;//Set Port M4 as output to buzzer
+  0035 1c000010     [4]     BSET  _DDRM,#16
+  117:      DDRM |= BIT5HI;//Set Port M5 as output to all SCKs.
+  0039 1c000020     [4]     BSET  _DDRM,#32
+  118:      
+  119:      /*PTM &= BIT4LO;//Initialize buzzer to off state.
+  120:      PTT &= BIT3LO;//Initialize motor 1 to off state.
+  121:      PTM &= BIT5LO;//Initialize shift clocks to low state.
+  122:      PTM &= BIT3LO;*/
+  123:      PTT = 0x0;
+  003d 7b0000       [3]     STAB  _PTT
+  124:      PTM = 0x0;
+  0040 7b0000       [3]     STAB  _PTM
+  125:      PTAD = 0x0; 
+  0043 7b0000       [3]     STAB  _PTAD
+  126:      
+  127:      if (ADS12_Init("OOOOIIOA") == ADS12_OK) 
+  0046 cc0000       [2]     LDD   #"OOOOIIOA"
+  0049 160000       [4]     JSR   ADS12_Init
+  004c 042405       [3]     DBNE  D,*+8 ;abs = 0054
+  128:      //AD0 is the knob, AD1 is shift/~load for the 74HC165, AD2 is the start button, 
+  129:      //AD3 is NOTHING and AD4 to AD7 are the buzzers.
+  130:      {
+  131:      puts("init ok");
+  004f cc0000       [2]     LDD   #"init ok"
+  132:      }else
+  0052 2003         [3]     BRA   *+5 ;abs = 0057
+  133:      {
+  134:      puts("adsinit error");
+  0054 cc0000       [2]     LDD   #"adsinit error"
+  0057 160000       [4]     JSR   puts
+  135:      }//initialize AD0 as analog input of Difficulty Level
+  136:      PWMS12_Init(); //initialize PWM capabilities.  
+  005a 160000       [4]     JSR   PWMS12_Init
+  137:      ClearAllLEDs();
+  005d 160000       [4]     JSR   ClearAllLEDs
+  138:      
+  139:      
+  140:      // post the initial transition event
+  141:      ThisEvent.EventType = EF_INIT;
+  0060 ce0001       [2]     LDX   #1
+  0063 6e80         [2]     STX   0,SP
+  142:      if (PostDiscoCubesSM( ThisEvent ) == True)
+  0065 ec82         [3]     LDD   2,SP
+  0067 160000       [4]     JSR   PostDiscoCubesSM
+  006a c101         [1]     CMPB  #1
+  006c 2601         [3/1]   BNE   *+3 ;abs = 006f
+  143:      {
+  144:          return True;
+  006e 21           [1]     SKIP1 
+  145:      }else
+  146:      {
+  147:          return False;
+  148:      }
+  149:    }else
+  150:    {
+  151:      return False;
+  006f c7           [1]     CLRB  
+  152:    }
+  153:  }
+  0070 1b84         [2]     LEAS  4,SP
+  0072 3d           [5]     RTS   
+  154:  
+  155:  
+  156:  /****************************************************************************
+  157:   Function
+  158:       PostDiscoCubesSM
+  159:  
+  160:   Parameters
+  161:       EF_Event ThisEvent , the event to post to the queue
+  162:  
+  163:   Returns
+  164:       boolean False if the Enqueue operation failed, True otherwise
+  165:  
+  166:   Description
+  167:       Posts an event to the state machine's queue
+  168:   Notes
+  169:  
+  170:   Author
+  171:       J. Edward Carryer, 10/23/11, 19:25
+  172:  ****************************************************************************/
+  173:  boolean PostDiscoCubesSM( EF_Event ThisEvent )
+  174:  {
+*** EVALUATION ***
+
+Function: PostDiscoCubesSM
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+  175:    boolean bResult3;
+  176:  
+  177:    bResult3 = EF_EnQueueFIFO( SMQueue, ThisEvent );
+  0002 cc0000       [2]     LDD   #SMQueue
+  0005 3b           [2]     PSHD  
+  0006 ec84         [3]     LDD   4,SP
+  0008 ee82         [3]     LDX   2,SP
+  000a 160000       [4]     JSR   EF_EnQueueFIFO
+  000d 1b82         [2]     LEAS  2,SP
+  178:  
+  179:    return bResult3;
+  180:  }
+  000f 1b84         [2]     LEAS  4,SP
+  0011 3d           [5]     RTS   
+  181:  
+  182:  /****************************************************************************
+  183:   Function
+  184:      RunDiscoCubesSM
+  185:  
+  186:   Parameters
+  187:     void
+  188:  
+  189:   Returns
+  190:     boolean, Flase if an error encountered, True otherwise
+  191:  
+  192:   Description
+  193:     add your description here
+  194:   Notes
+  195:     uses nested switch/case to implement the machine.
+  196:   Author
+  197:     J. Edward Carryer, 10/23/11, 18:38
+  198:  ****************************************************************************/
+  199:  boolean RunDiscoCubesSM( void )
+  200:  {
+*** EVALUATION ***
+
+Function: RunDiscoCubesSM
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b98         [2]     LEAS  -8,SP
+  201:    EF_Event ThisEvent;
+  202:    static int difficulty; //difficulty level
+  203:    static unsigned int led = 0; //tells us which front panel LED to light
+  204:    static int n; //number of times the user puts a wrong cube    
+  205:    ThisEvent = EF_DeQueue( SMQueue );// pull an event from the queue
+  0002 1a82         [2]     LEAX  2,SP
+  0004 34           [2]     PSHX  
+  0005 cc0000       [2]     LDD   #SMQueue
+  0008 160000       [4]     JSR   EF_DeQueue
+  000b 3a           [3]     PULD  
+  206:    
+  207:    
+  208:    // we should only call the Run function if we know that there is something in
+  209:    // the queue, so if we found EF_NO_EVENT something is wrong
+  210:    if (ThisEvent.EventType == EF_NO_EVENT )
+  000c ec82         [3]     LDD   2,SP
+  000e 260a         [3/1]   BNE   *+12 ;abs = 001a
+  211:    { puts("failed on runSM");
+  0010 cc0000       [2]     LDD   #"failed on runSM"
+  0013 160000       [4]     JSR   puts
+  212:      return False;
+  0016 c7           [1]     CLRB  
+  0017 060000       [3]     JMP   RunDiscoCubesSM:0x0276
+  213:    }else
+  214:    {
+  215:      switch ( CurrentState )
+  001a fc0000       [3]     LDD   CurrentState
+  001d 160000       [4]     JSR   _CASE_CHECKED
+  0020 0005         DC.W  5
+  0022 0000         DC.W  RunDiscoCubesSM:0x0274
+  0024 0000         DC.W  RunDiscoCubesSM:0x002e
+  0026 0000         DC.W  RunDiscoCubesSM:0x016c
+  0028 0000         DC.W  RunDiscoCubesSM:0x01a5
+  002a 0000         DC.W  RunDiscoCubesSM:0x0221
+  002c 0000         DC.W  RunDiscoCubesSM:0x0255
+  216:      {
+  217:           case Dormant :
+  218:  		   	n = 0; //number of mistakes
+  002e c7           [1]     CLRB  
+  002f 87           [1]     CLRA  
+  0030 7c0000       [3]     STD   n
+  219:  		   	game_over = False; //game is not over
+  0033 7b0000       [3]     STAB  game_over
+  220:  		   	if ((PTT & BIT6HI) != BIT6HI )
+  0036 1e00004005   [5]     BRSET _PTT,#64,*+10 ;abs = 0040
+  221:  		   	{
+  222:  		   	   StartMotorDown(30);
+  003b c61e         [1]     LDAB  #30
+  003d 160000       [4]     JSR   StartMotorDown
+  223:  		   	}
+  224:  		   	if(ThisEvent.EventType == IR_DOWN_LIMIT_SWITCH)
+  0040 ec82         [3]     LDD   2,SP
+  0042 8c0006       [2]     CPD   #6
+  0045 2603         [3/1]   BNE   *+5 ;abs = 004a
+  225:  		   	{
+  226:  		   	   StopAllMotors();
+  0047 160000       [4]     JSR   StopAllMotors
+  227:  		   	}
+  228:              if (ThisEvent.EventType == BUTTON_PUSHED)    //if start button has been pushed
+  004a ec82         [3]     LDD   2,SP
+  004c 8c0004       [2]     CPD   #4
+  004f 2628         [3/1]   BNE   *+42 ;abs = 0079
+  229:              {  
+  230:                 puts("Got in Button Pushed event");
+  0051 cc0000       [2]     LDD   #"Got in Button Pushed event"
+  0054 160000       [4]     JSR   puts
+  231:                 ClearAllLEDs();
+  0057 160000       [4]     JSR   ClearAllLEDs
+  232:                 InitAnswers(); //after button press, not every cycle
+  005a 160000       [4]     JSR   InitAnswers
+  233:                 difficulty = ReadDifficultyKnob();
+  005d 160000       [4]     JSR   ReadDifficultyKnob
+  0060 7c0000       [3]     STD   difficulty
+  234:                 printf("difficulty %d",difficulty); //reads current level of difficulty knob ONCE
+  0063 3b           [2]     PSHD  
+  0064 cc0000       [2]     LDD   #"difficulty %d"
+  0067 3b           [2]     PSHD  
+  0068 160000       [4]     JSR   printf
+  006b 1b84         [2]     LEAS  4,SP
+  235:  			      CurrentState = Game_Initializing; //takes us to game initializing state
+  006d c601         [1]     LDAB  #1
+  006f 87           [1]     CLRA  
+  0070 7c0000       [3]     STD   CurrentState
+  236:                 StartMotorUp(difficulty); //starts motor and raises pillars.  IR sensor has a limit switch to stop                        
+  0073 fc0000       [3]     LDD   difficulty
+  0076 160000       [4]     JSR   StartMotorUp
+  237:              }
+  238:              if ((ThisEvent.EventType == EF_INIT) | (ThisEvent.EventType == EF_TIMEOUT))
+  0079 ec82         [3]     LDD   2,SP
+  007b 040402       [3]     DBEQ  D,*+5 ;abs = 0080
+  007e c7           [1]     CLRB  
+  007f 8f           [2]     SKIP2 
+  0080 c601         [1]     LDAB  #1
+  0082 6b80         [2]     STAB  0,SP
+  0084 ee82         [3]     LDX   2,SP
+  0086 8e0003       [2]     CPX   #3
+  0089 2705         [3/1]   BEQ   *+7 ;abs = 0090
+  008b c7           [1]     CLRB  
+  008c 6b81         [2]     STAB  1,SP
+  008e 2004         [3]     BRA   *+6 ;abs = 0094
+  0090 8601         [1]     LDAA  #1
+  0092 6a81         [2]     STAA  1,SP
+  0094 a680         [3]     LDAA  0,SP
+  0096 aa81         [3]     ORAA  1,SP
+  0098 182701d8     [4/3]   LBEQ  *+476 ;abs = 0274
+  239:              {
+  240:                 switch (led%5)
+  009c fc0000       [3]     LDD   led
+  009f ce0005       [2]     LDX   #5
+  00a2 1810         [12]    IDIV  
+  00a4 c104         [1]     CMPB  #4
+  00a6 182201ca     [4/3]   LBHI  *+462 ;abs = 0274
+  00aa 87           [1]     CLRA  
+  00ab 160000       [4]     JSR   _CASE_CHECKED
+  00ae 0005         DC.W  5
+  00b0 0000         DC.W  RunDiscoCubesSM:0x0274
+  00b2 0000         DC.W  RunDiscoCubesSM:0x00bc
+  00b4 0000         DC.W  RunDiscoCubesSM:0x00db
+  00b6 0000         DC.W  RunDiscoCubesSM:0x00fa
+  00b8 0000         DC.W  RunDiscoCubesSM:0x011a
+  00ba 0000         DC.W  RunDiscoCubesSM:0x0139
+  241:                 {
+  242:                    int i;
+  243:                    case 0:
+  244:                       PanelLED = RED+GREEN+BLUE;
+  00bc c60e         [1]     LDAB  #14
+  00be 87           [1]     CLRA  
+  00bf 7c0000       [3]     STD   PanelLED
+  245:                       for(i = 0; i < 16; i++) //Repeat 16 times
+  00c2 c7           [1]     CLRB  
+  00c3 6c86         [2]     STD   6,SP
+  246:                       {
+  247:                          if (PanelLED & B16(00000000,00000001) == 0x1)   
+  00c5 1f00000106   [5]     BRCLR PanelLED:1,#1,*+11 ;abs = 00d0
+  248:                          {
+  249:                             PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  00ca 1c000004     [4]     BSET  _PTM,#4
+  250:                          }else
+  00ce 2004         [3]     BRA   *+6 ;abs = 00d4
+  251:                          {
+  252:                             PTM &= BIT2LO;
+  00d0 1d000004     [4]     BCLR  _PTM,#4
+  253:                          }
+  254:                          PulseSCKU4U5();//pulse the SCK line 
+  00d4 160000       [4]     JSR   RunDiscoCubesSM:0x0279
+  00d7 2dec         [3/1]   BLT   *-18 ;abs = 00c5
+  255:                          PanelLED = PanelLED >> 1;  
+  256:                       }
+  257:                       PulseRCKU4U5();
+  258:                       led++;
+  259:                       EF_Timer_InitTimer(0, 500);
+  260:                       break;
+  00d9 207b         [3]     BRA   *+125 ;abs = 0156
+  261:                 
+  262:                    case 1:
+  263:                       PanelLED = (RED+GREEN+BLUE) << 3;
+  00db c670         [1]     LDAB  #112
+  00dd 87           [1]     CLRA  
+  00de 7c0000       [3]     STD   PanelLED
+  264:                       for(i = 0; i < 16; i++) //Repeat 16 times
+  00e1 c7           [1]     CLRB  
+  00e2 6c86         [2]     STD   6,SP
+  265:                       {
+  266:                          if (PanelLED & B16(00000000,00000001) == 0x1)   
+  00e4 1f00000106   [5]     BRCLR PanelLED:1,#1,*+11 ;abs = 00ef
+  267:                          {
+  268:                             PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  00e9 1c000004     [4]     BSET  _PTM,#4
+  269:                          }else
+  00ed 2004         [3]     BRA   *+6 ;abs = 00f3
+  270:                          {
+  271:                             PTM &= BIT2LO;
+  00ef 1d000004     [4]     BCLR  _PTM,#4
+  272:                          }
+  273:                          PulseSCKU4U5();//pulse the SCK line 
+  00f3 160000       [4]     JSR   RunDiscoCubesSM:0x0279
+  00f6 2dec         [3/1]   BLT   *-18 ;abs = 00e4
+  274:                          PanelLED = PanelLED >> 1;  
+  275:                       }
+  276:                       PulseRCKU4U5();
+  277:                       led++;
+  278:                       EF_Timer_InitTimer(0, 500);
+  279:                       break;
+  00f8 205c         [3]     BRA   *+94 ;abs = 0156
+  280:                       
+  281:                    case 2:
+  282:                       PanelLED = (RED+GREEN+BLUE) << 6;
+  00fa cc0380       [2]     LDD   #896
+  00fd 7c0000       [3]     STD   PanelLED
+  283:                       for(i = 0; i < 16; i++) //Repeat 16 times
+  0100 c7           [1]     CLRB  
+  0101 87           [1]     CLRA  
+  0102 6c86         [2]     STD   6,SP
+  284:                       {
+  285:                          if (PanelLED & B16(00000000,00000001) == 0x1)   
+  0104 1f00000106   [5]     BRCLR PanelLED:1,#1,*+11 ;abs = 010f
+  286:                          {
+  287:                             PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  0109 1c000004     [4]     BSET  _PTM,#4
+  288:                          }else
+  010d 2004         [3]     BRA   *+6 ;abs = 0113
+  289:                          {
+  290:                             PTM &= BIT2LO;
+  010f 1d000004     [4]     BCLR  _PTM,#4
+  291:                          }
+  292:                          PulseSCKU4U5();//pulse the SCK line 
+  0113 160000       [4]     JSR   RunDiscoCubesSM:0x0279
+  0116 2dec         [3/1]   BLT   *-18 ;abs = 0104
+  293:                          PanelLED = PanelLED >> 1;  
+  294:                       }
+  295:                       PulseRCKU4U5();
+  296:                       led++;
+  297:                       EF_Timer_InitTimer(0, 500);
+  298:                       break;
+  0118 203c         [3]     BRA   *+62 ;abs = 0156
+  299:                    
+  300:                    case 3:
+  301:                       PanelLED = (RED+GREEN+BLUE) << 9;
+  011a 861c         [1]     LDAA  #28
+  011c c7           [1]     CLRB  
+  011d 7c0000       [3]     STD   PanelLED
+  302:                       for(i = 0; i < 16; i++) //Repeat 16 times
+  0120 87           [1]     CLRA  
+  0121 6c86         [2]     STD   6,SP
+  303:                       {
+  304:                          if (PanelLED & B16(00000000,00000001) == 0x1)   
+  0123 1f00000106   [5]     BRCLR PanelLED:1,#1,*+11 ;abs = 012e
+  305:                          {
+  306:                             PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  0128 1c000004     [4]     BSET  _PTM,#4
+  307:                          }else
+  012c 2004         [3]     BRA   *+6 ;abs = 0132
+  308:                          {
+  309:                             PTM &= BIT2LO;
+  012e 1d000004     [4]     BCLR  _PTM,#4
+  310:                          }
+  311:                          PulseSCKU4U5();//pulse the SCK line 
+  0132 160000       [4]     JSR   RunDiscoCubesSM:0x0279
+  0135 2dec         [3/1]   BLT   *-18 ;abs = 0123
+  312:                          PanelLED = PanelLED >> 1;  
+  313:                       }
+  314:                       PulseRCKU4U5();
+  315:                       led++;
+  316:                       EF_Timer_InitTimer(0, 500);
+  317:                       break;
+  0137 201d         [3]     BRA   *+31 ;abs = 0156
+  318:                    
+  319:                    case 4:
+  320:                       PanelLED = (RED+GREEN+BLUE) << 12;
+  0139 86e0         [1]     LDAA  #224
+  013b c7           [1]     CLRB  
+  013c 7c0000       [3]     STD   PanelLED
+  321:                       for(i = 0; i < 16; i++) //Repeat 16 times
+  013f 87           [1]     CLRA  
+  0140 6c86         [2]     STD   6,SP
+  322:                       {
+  323:                          if (PanelLED & B16(00000000,00000001) == 0x1)   
+  0142 1f00000106   [5]     BRCLR PanelLED:1,#1,*+11 ;abs = 014d
+  324:                          {
+  325:                             PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  0147 1c000004     [4]     BSET  _PTM,#4
+  326:                          }else
+  014b 2004         [3]     BRA   *+6 ;abs = 0151
+  327:                          {
+  328:                             PTM &= BIT2LO;
+  014d 1d000004     [4]     BCLR  _PTM,#4
+  329:                          }
+  330:                          PulseSCKU4U5();//pulse the SCK line 
+  0151 160000       [4]     JSR   RunDiscoCubesSM:0x0279
+  0154 2dec         [3/1]   BLT   *-18 ;abs = 0142
+  331:                          PanelLED = PanelLED >> 1;  
+  332:                       }
+  333:                       PulseRCKU4U5();
+  0156 160000       [4]     JSR   PulseRCKU4U5
+  334:                       led++;
+  0159 fe0000       [3]     LDX   led
+  015c 08           [1]     INX   
+  015d 7e0000       [3]     STX   led
+  335:                       EF_Timer_InitTimer(0, 500);
+  0160 c7           [1]     CLRB  
+  0161 37           [2]     PSHB  
+  0162 cc01f4       [2]     LDD   #500
+  0165 160000       [4]     JSR   EF_Timer_InitTimer
+  0168 1b81         [2]     LEAS  1,SP
+  016a 201c         [3]     BRA   *+30 ;abs = 0188
+  336:                       break;
+  337:                    
+  338:                 }
+  339:              }
+  340:  		   break;                                
+  341:              
+  342:           case Game_Initializing :
+  343:              if (ThisEvent.EventType == IR_UP_LIMIT_SWITCH) 
+  016c ec82         [3]     LDD   2,SP
+  016e 8c0005       [2]     CPD   #5
+  0171 260b         [3/1]   BNE   *+13 ;abs = 017e
+  344:              {  
+  345:                 StopAllMotors();
+  0173 160000       [4]     JSR   StopAllMotors
+  346:                 DisplayAnswer();//lights up the LED display on the front panel showing answer
+  0176 160000       [4]     JSR   DisplayAnswer
+  347:                 //puts("displayanswers after");
+  348:                 TurnOnCubeLEDs();                                 
+  0179 160000       [4]     JSR   TurnOnCubeLEDs
+  349:              }else if (ThisEvent.EventType == CUBE_INCORRECT) 
+  017c 200a         [3]     BRA   *+12 ;abs = 0188
+  017e 8c0007       [2]     CPD   #7
+  0181 2607         [3/1]   BNE   *+9 ;abs = 018a
+  350:  		      {
+  351:  		         ActivateBuzzer(ThisEvent.EventParam);
+  0183 ec84         [3]     LDD   4,SP
+  0185 160000       [4]     JSR   ActivateBuzzer
+  352:  		      }else if (ThisEvent.EventType == CUBE_CORRECT)
+  0188 2076         [3]     BRA   *+120 ;abs = 0200
+  018a 8c0008       [2]     CPD   #8
+  018d 2671         [3/1]   BNE   *+115 ;abs = 0200
+  353:  		      {
+  354:  			      CurrentState = Game_Running;
+  018f c602         [1]     LDAB  #2
+  0191 87           [1]     CLRA  
+  0192 7c0000       [3]     STD   CurrentState
+  355:  			      //start_time = EF_Timer_GetTime();
+  356:  			      EF_Timer_InitTimer(0, 35000);
+  0195 36           [2]     PSHA  
+  0196 cc88b8       [2]     LDD   #35000
+  0199 160000       [4]     JSR   EF_Timer_InitTimer
+  019c 32           [3]     PULA  
+  357:                 UpdateUsersAnswer(ThisEvent.EventParam);
+  019d ec84         [3]     LDD   4,SP
+  019f 160000       [4]     JSR   UpdateUsersAnswer
+  01a2 060000       [3]     JMP   RunDiscoCubesSM:0x0243
+  358:  			      StartMotorDown(difficulty); //starts motor to lower pillars
+  359:  		      }
+  360:  		   break;                                  
+  361:             
+  362:           case Game_Running : 
+  363:              puts("game running");              
+  01a5 cc0000       [2]     LDD   #"game running"
+  01a8 160000       [4]     JSR   puts
+  364:              if (ThisEvent.EventType == CUBE_CORRECT) //user has placed a cube correctly during game play
+  01ab ec82         [3]     LDD   2,SP
+  01ad 8c0008       [2]     CPD   #8
+  01b0 261a         [3/1]   BNE   *+28 ;abs = 01cc
+  365:              {  puts("cube correct in game");
+  01b2 cc0000       [2]     LDD   #"cube correct in game"
+  01b5 160000       [4]     JSR   puts
+  366:                 UpdateUsersAnswer(ThisEvent.EventParam);
+  01b8 ec84         [3]     LDD   4,SP
+  01ba 160000       [4]     JSR   UpdateUsersAnswer
+  367:  			      if (CompareAnswers() == True){
+  01bd 160000       [4]     JSR   CompareAnswers
+  01c0 0421b1       [3]     DBNE  B,*+180 ;abs = 0274
+  368:  			         game_over = True; //game is over.
+  01c3 c601         [1]     LDAB  #1
+  01c5 7b0000       [3]     STAB  game_over
+  369:  				      CurrentState = Game_Over_Win;
+  01c8 c603         [1]     LDAB  #3
+  01ca 2045         [3]     BRA   *+71 ;abs = 0211
+  370:  				      ThisEvent.EventType = GAME_OVER;
+  371:     			      EF_PostList00(ThisEvent);
+  372:  			      }                    
+  373:              }else if (ThisEvent.EventType == CUBE_INCORRECT)
+  01cc 8c0007       [2]     CPD   #7
+  01cf 2631         [3/1]   BNE   *+51 ;abs = 0202
+  374:  		      {  puts("cube wrong in game");
+  01d1 cc0000       [2]     LDD   #"cube wrong in game"
+  01d4 160000       [4]     JSR   puts
+  375:                 n++;
+  01d7 fe0000       [3]     LDX   n
+  01da 08           [1]     INX   
+  01db 7e0000       [3]     STX   n
+  376:  		         ActivateBuzzer(ThisEvent.EventParam);
+  01de ec84         [3]     LDD   4,SP
+  01e0 160000       [4]     JSR   ActivateBuzzer
+  377:  			      if (n == 1){
+  01e3 fc0000       [3]     LDD   n
+  01e6 042406       [3]     DBNE  D,*+9 ;abs = 01ef
+  378:  			         puts("n = 1");
+  01e9 cc0000       [2]     LDD   #"n = 1"
+  01ec 160000       [4]     JSR   puts
+  379:  				      //difficulty = IncreaseMotorSpeed(difficulty);
+  380:  			      }
+  381:  			      if (n >= 2){
+  01ef fc0000       [3]     LDD   n
+  01f2 8c0002       [2]     CPD   #2
+  01f5 2d7d         [3/1]   BLT   *+127 ;abs = 0274
+  382:  			         puts("n>=2");
+  01f7 cc0000       [2]     LDD   #"n>=2"
+  01fa 160000       [4]     JSR   puts
+  383:  				      Switch2Colors(); //switches 2 colors on the LED display
+  01fd 160000       [4]     JSR   Switch2Colors
+  0200 2072         [3]     BRA   *+116 ;abs = 0274
+  384:     			   }
+  385:     		   }else if (ThisEvent.EventType == IR_DOWN_LIMIT_SWITCH)
+  0202 8c0006       [2]     CPD   #6
+  0205 2705         [3/1]   BEQ   *+7 ;abs = 020c
+  386:     		   {
+  387:     		      StopAllMotors();
+  388:     			   CurrentState = Game_Over_Lose;
+  389:     			   ThisEvent.EventType = GAME_OVER;
+  390:     			   EF_PostList00(ThisEvent);
+  391:     		   }else if (ThisEvent.EventType == EF_TIMEOUT)
+  0207 8c0003       [2]     CPD   #3
+  020a 2668         [3/1]   BNE   *+106 ;abs = 0274
+  392:     		   {
+  393:     		      StopAllMotors();
+  020c 160000       [4]     JSR   StopAllMotors
+  394:     			   CurrentState = Game_Over_Lose;
+  020f c604         [1]     LDAB  #4
+  395:     			   ThisEvent.EventType = GAME_OVER;
+  0211 87           [1]     CLRA  
+  0212 7c0000       [3]     STD   CurrentState
+  0215 ce000a       [2]     LDX   #10
+  0218 6e82         [2]     STX   2,SP
+  396:     			   EF_PostList00(ThisEvent);
+  021a ec84         [3]     LDD   4,SP
+  021c 160000       [4]     JSR   EF_PostList00
+  021f 2053         [3]     BRA   *+85 ;abs = 0274
+  397:     		   }
+  398:     		break;
+  399:  
+  400:           case Game_Over_Win :
+  401:              puts ("in gameover win"); 
+  0221 cc0000       [2]     LDD   #"in gameover win"
+  0224 160000       [4]     JSR   puts
+  402:              if (game_over == True)
+  0227 f60000       [3]     LDAB  game_over
+  022a 04210c       [3]     DBNE  B,*+15 ;abs = 0239
+  403:              {
+  404:                 YouWinLEDMessage();
+  022d 160000       [4]     JSR   YouWinLEDMessage
+  405:                 StartMotorUp(difficulty);
+  0230 fc0000       [3]     LDD   difficulty
+  0233 160000       [4]     JSR   StartMotorUp
+  406:                 game_over = False;     
+  0236 790000       [3]     CLR   game_over
+  407:              }           
+  408:              if (ThisEvent.EventType == IR_UP_LIMIT_SWITCH)
+  0239 ec82         [3]     LDD   2,SP
+  023b 8c0005       [2]     CPD   #5
+  023e 260b         [3/1]   BNE   *+13 ;abs = 024b
+  409:              {
+  410:                 AlternatePillars();
+  0240 160000       [4]     JSR   AlternatePillars
+  411:                 StartMotorDown(difficulty);
+  0243 fc0000       [3]     LDD   difficulty
+  0246 160000       [4]     JSR   StartMotorDown
+  0249 2029         [3]     BRA   *+43 ;abs = 0274
+  412:              }else if (ThisEvent.EventType == IR_DOWN_LIMIT_SWITCH)
+  024b 8c0006       [2]     CPD   #6
+  024e 2624         [3/1]   BNE   *+38 ;abs = 0274
+  413:              {
+  414:                 StopAllMotors();
+  0250 160000       [4]     JSR   StopAllMotors
+  0253 200d         [3]     BRA   *+15 ;abs = 0262
+  415:                 ClearAllLEDs();
+  416:                 CurrentState = Dormant;
+  417:                 ThisEvent.EventType = EF_INIT;
+  418:                 PostDiscoCubesSM(ThisEvent);
+  419:              }
+  420:           break;
+  421:  
+  422:     		case Game_Over_Lose :
+  423:     		   if (ThisEvent.EventType == GAME_OVER)
+  0255 ec82         [3]     LDD   2,SP
+  0257 8c000a       [2]     CPD   #10
+  025a 2618         [3/1]   BNE   *+26 ;abs = 0274
+  424:     		   {
+  425:     		      puts("gameover");
+  025c cc0000       [2]     LDD   #"gameover"
+  025f 160000       [4]     JSR   puts
+  426:     		      ClearAllLEDs();
+  0262 160000       [4]     JSR   ClearAllLEDs
+  427:     		      CurrentState = Dormant;
+  0265 c7           [1]     CLRB  
+  0266 87           [1]     CLRA  
+  0267 7c0000       [3]     STD   CurrentState
+  428:                 ThisEvent.EventType = EF_INIT;
+  026a ce0001       [2]     LDX   #1
+  026d 6e82         [2]     STX   2,SP
+  429:                 PostDiscoCubesSM(ThisEvent);  
+  026f ec84         [3]     LDD   4,SP
+  0271 160000       [4]     JSR   PostDiscoCubesSM
+  430:     		   }
+  431:     		break;
+  432:      }               // end switch on Current State
+  433:      return True;
+  0274 c601         [1]     LDAB  #1
+  434:    }
+  435:  }
+  0276 1b88         [2]     LEAS  8,SP
+  0278 3d           [5]     RTS   
+  0279 160000       [4]     JSR   PulseSCKU4U5
+  027c 740000       [4]     LSR   PanelLED
+  027f 760000       [4]     ROR   PanelLED:1
+  0282 ee88         [3]     LDX   8,SP
+  0284 08           [1]     INX   
+  0285 6e88         [2]     STX   8,SP
+  0287 8e0010       [2]     CPX   #16
+  028a 3d           [5]     RTS   
+  436:  
+  437:   /****************************************************************************
+  438:   Function
+  439:       IsDiscoCubesSMQEmpty
+  440:  
+  441:   Parameters
+  442:       void
+  443:  
+  444:   Returns
+  445:       boolean True if the Queue is empty, False if the queue has something in it
+  446:  
+  447:   Description
+  448:       tests if this state machine's queue is empty
+  449:   Notes
+  450:  
+  451:   Author
+  452:       J. Edward Carryer, 10/23/11, 19:28
+  453:  ****************************************************************************/
+  454:  boolean IsDiscoCubesSMQEmpty( void ){
+*** EVALUATION ***
+
+Function: IsDiscoCubesSMQEmpty
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  455:  
+  456:    return EF_IsQueueEmpty( SMQueue );
+  0000 cc0000       [2]     LDD   #SMQueue
+  0003 160000       [4]     JSR   EF_IsQueueEmpty
+  457:  }
+  0006 3d           [5]     RTS   
+  458:  
+  459:  /****************************************************************************
+  460:   Function
+  461:       QueryDiscoCubesSM
+  462:  
+  463:   Parameters
+  464:       None
+  465:  
+  466:   Returns
+  467:       DiscoCubesState_t The current state of the DiscoCubes state machine
+  468:  
+  469:   Description
+  470:       returns the current state of the DiscoCubes state machine
+  471:   Notes
+  472:  
+  473:   Author
+  474:       J. Edward Carryer, 10/23/11, 19:21
+  475:  ****************************************************************************/
+  476:  DiscoCubesState_t QueryDiscoCubesSM ( void )
+  477:  {
+*** EVALUATION ***
+
+Function: QueryDiscoCubesSM
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  478:     return(CurrentState);
+  0000 fc0000       [3]     LDD   CurrentState
+  479:  }
+  0003 3d           [5]     RTS   
+  480:  
+  481:  /***************************************************************************/
+  482:  char* GetComputersAnswer(void)
+  483:  {
+*** EVALUATION ***
+
+Function: GetComputersAnswer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  484:    return computersanswer;
+  0000 cc0000       [2]     LDD   #computersanswer
+  485:  }
+  0003 3d           [5]     RTS   
+  486:  
+  487:  /**************************************************************************/
+  488:  uint16_t GetStartTime(void)
+  489:  {
+*** EVALUATION ***
+
+Function: GetStartTime
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  490:     return start_time;
+  0000 fc0000       [3]     LDD   start_time
+  491:  }
+  0003 3d           [5]     RTS   
+  492:  
+  493:  /***************************************************************************
+  494:   private functions
+  495:   ***************************************************************************/
+  496:  
+  497:  void InitAnswers()
+  498:  {
+*** EVALUATION ***
+
+Function: InitAnswers
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  499:     int i;
+  500:     for(i = 0; i<NO_OF_CUBES; i++)//Generate a Random Array of colors
+  0001 ce0000       [2]     LDX   #0
+  501:     {
+  502:        computersanswer[i] = RandColor();
+  0004 34           [2]     PSHX  
+  0005 160000       [4]     JSR   RandColor
+  0008 ee80         [3]     LDX   0,SP
+  000a 6be20000     [3]     STAB  computersanswer,X
+  503:        printf("computersanswer %d",computersanswer[i]);          
+  000e b716         [1]     SEX   B,Y
+  0010 35           [2]     PSHY  
+  0011 cc0000       [2]     LDD   #"computersanswer %d"
+  0014 3b           [2]     PSHD  
+  0015 160000       [4]     JSR   printf
+  0018 1b84         [2]     LEAS  4,SP
+  001a 30           [3]     PULX  
+  001b 08           [1]     INX   
+  001c 8e0005       [2]     CPX   #5
+  001f 2de3         [3/1]   BLT   *-27 ;abs = 0004
+  504:     } 
+  505:     for(i = 0; i<NO_OF_CUBES; i++)//Generate a Random Array of colors
+  0021 ce0000       [2]     LDX   #0
+  506:     {
+  507:        usersanswer[i] = '#';
+  0024 c623         [1]     LDAB  #35
+  0026 6be20000     [3]     STAB  usersanswer,X
+  508:        printf("usersanswer %d",usersanswer[i]);
+  002a b716         [1]     SEX   B,Y
+  002c 35           [2]     PSHY  
+  002d cc0000       [2]     LDD   #"usersanswer %d"
+  0030 3b           [2]     PSHD  
+  0031 6e84         [2]     STX   4,SP
+  0033 160000       [4]     JSR   printf
+  0036 eea3         [3]     LDX   4,+SP
+  0038 08           [1]     INX   
+  0039 8e0005       [2]     CPX   #5
+  003c 2de6         [3/1]   BLT   *-24 ;abs = 0024
+  509:                  
+  510:     } 
+  511:  }
+  003e 3a           [3]     PULD  
+  003f 3d           [5]     RTS   
+  512:  /***************************************************************************
+  513:  This Function Read Difficulty Level, deciding the initial Falling Speed of the Pillars
+  514:  ****************************************************************************/ 
+  515:  unsigned int ReadDifficultyKnob( void)
+  516:  {
+*** EVALUATION ***
+
+Function: ReadDifficultyKnob
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  517:      unsigned int difficulty;//initialize local difficulty
+  518:    
+  519:      difficulty = ADS12_ReadADPin(0);//Read AD0
+  0000 c7           [1]     CLRB  
+  0001 160000       [4]     JSR   ADS12_ReadADPin
+  520:      difficulty = (10*difficulty/1024)*5;
+  0004 b746         [1]     TFR   D,Y
+  0006 c60a         [1]     LDAB  #10
+  0008 87           [1]     CLRA  
+  0009 13           [3]     EMUL  
+  000a b746         [1]     TFR   D,Y
+  000c c60a         [1]     LDAB  #10
+  000e 160000       [4]     JSR   _ISHRU
+  0011 b746         [1]     TFR   D,Y
+  0013 c605         [1]     LDAB  #5
+  0015 87           [1]     CLRA  
+  0016 13           [3]     EMUL  
+  521:      
+  522:      return difficulty;
+  523:  }
+  0017 3d           [5]     RTS   
+  524:  
+  525:  
+  526:  /*******************************************************************
+  527:  This Function Light up LEDs in the Front Panel successively in dormant state 
+  528:  
+  529:  This explain the way how tri-color LEDs are connected to Shift Register
+  530:  **********************************************************************
+  531:  
+  532:  5 Tri-Color LEDs -- in total 15 LEDs 
+  533:  are connected to the outputs of two 74HC595s
+  534:  
+  535:  The LEDs shown in the front panel are numbered as shown below
+  536:        |0|   |1|
+  537:           |2|
+  538:        |3|   |4|                                                 
+  539:  0th LEDs are connected to QA1 QB1 QC1 (R G B)
+  540:  1st LEDs are connected to QD1 QE1 QF1 (R G B) 
+  541:  2nd LEDs are connected to QG1 QH1 QA2 (R G B)
+  542:  3rd LEDs are connected to QB2 QC2 QD2 (R G B)
+  543:  4th LEDs are connected to QE2 QF2 QG2 (R G B)
+  544:  
+  545:  We use
+  546:  M2 for Datainput
+  547:  M4 for SCK
+  548:  M3 for RCK
+  549:  
+  550:  **********************************************************************
+  551:  End Of Explain the way how tri-color LEDs are connected to Shift Register
+  552:  ******************************************************************/
+  553:  
+  554:  /*********************************************************************
+  555:  Display a random LED pattern on the front panel
+  556:  *****************************************************************/
+  557:  void DisplayAnswer( void)
+  558:  {  
+*** EVALUATION ***
+
+Function: DisplayAnswer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9b         [2]     LEAS  -5,SP
+  559:     unsigned char i;
+  560:     unsigned char j;
+  561:     unsigned int cube_pattern = 0x0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c81         [2]     STD   1,SP
+  562:     
+  563:     puts("starts display answer");
+  0006 cc0000       [2]     LDD   #"starts display answer"
+  0009 160000       [4]     JSR   puts
+  564:     //Defines an integer, cube_pattern, that stores the bitwise representation of the computer's answer.
+  565:     for (j = 0; j < NO_OF_CUBES; j++)
+  000c 6983         [2]     CLR   3,SP
+  566:     {
+  567:        char color = computersanswer[j];
+  000e e683         [3]     LDAB  3,SP
+  0010 ce0000       [2]     LDX   #computersanswer
+  0013 e6e5         [3]     LDAB  B,X
+  568:        printf("color is: %d \r\n",color);
+  0015 b715         [1]     SEX   B,X
+  0017 34           [2]     PSHX  
+  0018 ce0000       [2]     LDX   #"color is: %d \015\012"
+  001b 34           [2]     PSHX  
+  001c 6b84         [2]     STAB  4,SP
+  001e 160000       [4]     JSR   printf
+  569:        switch (color)
+  0021 e6a3         [3]     LDAB  4,+SP
+  0023 c102         [1]     CMPB  #2
+  0025 223d         [3/1]   BHI   *+63 ;abs = 0064
+  0027 87           [1]     CLRA  
+  0028 160000       [4]     JSR   _CASE_CHECKED_BYTE
+  002b 03           DC.B  3
+  002c 37           DC.B  55
+  002d 03           DC.B  3
+  002e 13           DC.B  19
+  002f 23           DC.B  35
+  570:        {
+  571:           case 0 :
+  572:             cube_pattern += (BLUE<<(j*3));
+  0030 c603         [1]     LDAB  #3
+  0032 a683         [3]     LDAA  3,SP
+  0034 12           [1]     MUL   
+  0035 cd0002       [2]     LDY   #2
+  0038 0757         [4]     BSR   *+89 ;abs = 0091
+  573:             printf("case0--cube_pattern is: %d\r\n",cube_pattern); 
+  003a 3b           [2]     PSHD  
+  003b cc0000       [2]     LDD   #"case0--cube_pattern is: %d\015\012"
+  574:             break;
+  003e 201e         [3]     BRA   *+32 ;abs = 005e
+  575:           case 1 :
+  576:             cube_pattern += (GREEN<<(j*3));
+  0040 c603         [1]     LDAB  #3
+  0042 a683         [3]     LDAA  3,SP
+  0044 12           [1]     MUL   
+  0045 cd0004       [2]     LDY   #4
+  0048 0747         [4]     BSR   *+73 ;abs = 0091
+  577:             printf("case1--cube_pattern is: %d\r\n",cube_pattern); 
+  004a 3b           [2]     PSHD  
+  004b cc0000       [2]     LDD   #"case1--cube_pattern is: %d\015\012"
+  578:             break;
+  004e 200e         [3]     BRA   *+16 ;abs = 005e
+  579:           case 2 : 
+  580:             cube_pattern += (RED<<(j*3));
+  0050 c603         [1]     LDAB  #3
+  0052 a683         [3]     LDAA  3,SP
+  0054 12           [1]     MUL   
+  0055 cd0008       [2]     LDY   #8
+  0058 0737         [4]     BSR   *+57 ;abs = 0091
+  581:             printf("case2--cube_pattern is: %d\r\n",cube_pattern); 
+  005a 3b           [2]     PSHD  
+  005b cc0000       [2]     LDD   #"case2--cube_pattern is: %d\015\012"
+  005e 3b           [2]     PSHD  
+  005f 160000       [4]     JSR   printf
+  0062 1b84         [2]     LEAS  4,SP
+  0064 6283         [3]     INC   3,SP
+  0066 e683         [3]     LDAB  3,SP
+  0068 c105         [1]     CMPB  #5
+  006a 25a2         [3/1]   BCS   *-92 ;abs = 000e
+  582:             break;
+  583:        }
+  584:     }
+  585:     //physically displays our answer on the LED panel.
+  586:     for(i = 0; i < 16; i++) //Repeat 16 times
+  006c 6984         [2]     CLR   4,SP
+  587:     {
+  588:        if ((cube_pattern & B16(00000000,00000001)) == 0x1)//place FrontPanelLED onto the data output pin 
+  006e 0f820106     [4]     BRCLR 2,SP,#1,*+10 ;abs = 0078
+  589:        ///make into a shiftin function 
+  590:        {
+  591:           PTM |= BIT2HI; //BIT2 on port M is connected to the data input for the 74HC595
+  0072 1c000004     [4]     BSET  _PTM,#4
+  592:        }else
+  0076 2004         [3]     BRA   *+6 ;abs = 007c
+  593:        {
+  594:           PTM &= BIT2LO;
+  0078 1d000004     [4]     BCLR  _PTM,#4
+  595:        }
+  596:        PulseSCKU4U5();//pulse the SCK line
+  007c 160000       [4]     JSR   PulseSCKU4U5
+  597:        cube_pattern = cube_pattern >> 1;
+  007f 6481         [3]     LSR   1,SP
+  0081 6682         [3]     ROR   2,SP
+  0083 6284         [3]     INC   4,SP
+  0085 e684         [3]     LDAB  4,SP
+  0087 c110         [1]     CMPB  #16
+  0089 25e3         [3/1]   BCS   *-27 ;abs = 006e
+  598:     }
+  599:     PulseRCKU4U5();
+  008b 160000       [4]     JSR   PulseRCKU4U5
+  600:  }
+  008e 1b85         [2]     LEAS  5,SP
+  0090 3d           [5]     RTS   
+  0091 160000       [4]     JSR   _ISHL
+  0094 e383         [3]     ADDD  3,SP
+  0096 6c83         [2]     STD   3,SP
+  0098 3d           [5]     RTS   
+  601:  
+  602:  
+  603:  
+  604:  
+  605:  //argument will be an integer, 0 through 4, corresponding to one of the five cubes.
+  606:  void UpdateUsersAnswer(uint16_t param)
+  607:  {
+*** EVALUATION ***
+
+Function: UpdateUsersAnswer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  608:     usersanswer[param] = computersanswer[param]; 
+  0000 b745         [1]     TFR   D,X
+  0002 e6e20000     [4]     LDAB  computersanswer,X
+  0006 6be20000     [3]     STAB  usersanswer,X
+  609:  }
+  000a 3d           [5]     RTS   
+  610:  
+  611:  
+  612:  
+  613:  
+  614:  char RandColor(void)  //generate a random 0,1 or 2 to represent red, green and blue.
+  615:  {
+*** EVALUATION ***
+
+Function: RandColor
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  616:     char randomcolor;
+  617:     srand(EF_Timer_GetTime());
+  0000 160000       [4]     JSR   EF_Timer_GetTime
+  0003 160000       [4]     JSR   srand
+  618:     randomcolor = ((unsigned char)rand())%3;   // R=2 G=1 B=0
+  0006 160000       [4]     JSR   rand
+  0009 8603         [1]     LDAA  #3
+  000b 160000       [4]     JSR   _BDIVMODU
+  619:     return randomcolor; 
+  620:  }
+  000e 3d           [5]     RTS   
+  621:  
+  622:  /*******************************************************************
+  623:  Cube topview:
+  624:        |0|   |1|
+  625:           |2|
+  626:        |3|   |4|   
+  627:  
+  628:  Cube LEDs are connected to U1 74HC595 shift register
+  629:  
+  630:  0th cube -- QA
+  631:  1st cube -- QB
+  632:  2nd cube -- QC
+  633:  3rd cube -- QD
+  634:  4th cube -- QE
+  635:  ********************************************************************/
+  636:  
+  637:  //turns on all cube LED circuits so that they light up when you place them on the pillars.
+  638:  void TurnOnCubeLEDs(void)
+  639:  {
+*** EVALUATION ***
+
+Function: TurnOnCubeLEDs
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  640:     int i;
+  641:     
+  642:     for (i = 0; i < NO_OF_CUBES; i++)
+  0000 ce0000       [2]     LDX   #0
+  643:     {
+  644:        PTM |= BIT1HI; //PTM1 outputs HI to Datainput of U1
+  0003 1c000002     [4]     BSET  _PTM,#2
+  645:        PulseSCKU1();
+  0007 34           [2]     PSHX  
+  0008 160000       [4]     JSR   PulseSCKU1
+  000b 30           [3]     PULX  
+  000c 08           [1]     INX   
+  000d 8e0005       [2]     CPX   #5
+  0010 2df1         [3/1]   BLT   *-13 ;abs = 0003
+  646:     }
+  647:     PulseRCKU1();
+  0012 060000       [3]     JMP   PulseRCKU1
+  648:  }
+  649:  
+  650:  
+  651:  
+  652:  
+  653:  
+  654:  void Switch2Colors( void) 
+  655:  {
+*** EVALUATION ***
+
+Function: Switch2Colors
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9c         [2]     LEAS  -4,SP
+  656:     char temp;
+  657:     char randomcube2;
+  658:     char randomcube1;
+  659:     
+  660:     srand(EF_Timer_GetTime());
+  0002 160000       [4]     JSR   EF_Timer_GetTime
+  0005 160000       [4]     JSR   srand
+  661:     
+  662:     randomcube1 = ((unsigned char)rand())%5; 
+  0008 160000       [4]     JSR   rand
+  000b 8605         [1]     LDAA  #5
+  000d 160000       [4]     JSR   _BDIVMODU
+  663:     randomcube2 = ((unsigned char)rand())%5; 
+  0010 37           [2]     PSHB  
+  0011 160000       [4]     JSR   rand
+  0014 8605         [1]     LDAA  #5
+  0016 160000       [4]     JSR   _BDIVMODU
+  664:     
+  665:     printf("rando1 %d,rando2%d",randomcube1,randomcube2 );
+  0019 b715         [1]     SEX   B,X
+  001b 34           [2]     PSHX  
+  001c e682         [3]     LDAB  2,SP
+  001e b716         [1]     SEX   B,Y
+  0020 35           [2]     PSHY  
+  0021 cc0000       [2]     LDD   #"rando1 %d,rando2%d"
+  0024 3b           [2]     PSHD  
+  0025 6d87         [2]     STY   7,SP
+  0027 6e89         [2]     STX   9,SP
+  0029 160000       [4]     JSR   printf
+  002c 1b86         [2]     LEAS  6,SP
+  666:     
+  667:     temp = computersanswer[randomcube1];
+  002e ee81         [3]     LDX   1,SP
+  0030 e6e20000     [4]     LDAB  computersanswer,X
+  668:     computersanswer[randomcube1] = computersanswer[randomcube2];
+  0034 ed83         [3]     LDY   3,SP
+  0036 a6ea0000     [4]     LDAA  computersanswer,Y
+  003a 6ae20000     [3]     STAA  computersanswer,X
+  669:     computersanswer[randomcube2] = temp;
+  003e 6bea0000     [3]     STAB  computersanswer,Y
+  670:     
+  671:     DisplayAnswer();
+  0042 160000       [4]     JSR   DisplayAnswer
+  0045 1b85         [2]     LEAS  5,SP
+  672:  }
+  0047 3d           [5]     RTS   
+  673:  
+  674:  
+  675:  
+  676:  
+  677:  //starts motors pushing the pillars up
+  678:  void StartMotorUp(unsigned int difficulty)
+  679:  {
+*** EVALUATION ***
+
+Function: StartMotorUp
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 36           [2]     PSHA  
+  680:    PTT |= BIT5HI; //enables L293NE
+  0002 1c000020     [4]     BSET  _PTT,#32
+  681:    
+  682:    //N.B. at a duty cycle of 50, the motor will not move, since in the H-bridge configuration, low corresponds 
+  683:    //to moving in one direction, and high in another.  Therefore, we modify "difficulty" to reflect this fact.  
+  684:    //Furthermore, we can exploit this phenomenon in startmotor up and start motor down.  Lastly, motor 1 is wired 
+  685:    //opposite to motors 2,3 and so a duty cycle of 70 for all motors sets motors 2,3 moving in one direction and motor
+  686:    //1 moving in the opposite direction.    
+  687:    PWMS12_SetDuty((unsigned char)(50+difficulty),PWMS12_CHAN0);
+  0006 e682         [3]     LDAB  2,SP
+  0008 cb32         [1]     ADDB  #50
+  000a 37           [2]     PSHB  
+  000b 6b81         [2]     STAB  1,SP
+  000d c7           [1]     CLRB  
+  000e 160000       [4]     JSR   PWMS12_SetDuty
+  688:    PWMS12_SetDuty((unsigned char)(50+difficulty),PWMS12_CHAN1);
+  0011 e6a0         [3]     LDAB  1,+SP
+  0013 37           [2]     PSHB  
+  0014 c601         [1]     LDAB  #1
+  0016 160000       [4]     JSR   PWMS12_SetDuty
+  689:    PWMS12_SetPeriod(20510,PWMS12_GRP0); //250 Hz.
+  0019 cc501e       [2]     LDD   #20510
+  001c 6caf         [2]     STD   1,-SP
+  001e c7           [1]     CLRB  
+  001f 160000       [4]     JSR   PWMS12_SetPeriod
+  0022 1b85         [2]     LEAS  5,SP
+  690:  }
+  0024 3d           [5]     RTS   
+  691:  
+  692:  
+  693:  
+  694:  //starts motors pushing the pillars down
+  695:  void StartMotorDown(unsigned int difficulty)
+  696:  {
+*** EVALUATION ***
+
+Function: StartMotorDown
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  697:    PTT |= BIT5HI; //enables L293NE
+  0000 1c000020     [4]     BSET  _PTT,#32
+  698:    //N.B. at a duty cycle of 50, the motor will not move, since in the H-bridge configuration, low corresponds 
+  699:    //to moving in one direction, and high in another.  Therefore, we modify "difficulty" to reflect this fact.  
+  700:    //Furthermore, we can exploit this phenomenon in startmotor up and start motor down.  Lastly, motor 1 is wired 
+  701:    //opposite to motors 2,3 and so a duty cycle of 70 for all motors sets motors 2,3 moving in one direction and motor
+  702:    //1 moving in the opposite direction.    
+  703:    PWMS12_SetDuty((unsigned char)(50-difficulty/4),PWMS12_CHAN0);
+  0004 49           [1]     LSRD  
+  0005 49           [1]     LSRD  
+  0006 8632         [1]     LDAA  #50
+  0008 1816         [2]     SBA   
+  000a 6aae         [2]     STAA  2,-SP
+  000c c7           [1]     CLRB  
+  000d 6a81         [2]     STAA  1,SP
+  000f 160000       [4]     JSR   PWMS12_SetDuty
+  704:    PWMS12_SetDuty((unsigned char)(50-difficulty/4),PWMS12_CHAN1);
+  0012 e6a0         [3]     LDAB  1,+SP
+  0014 37           [2]     PSHB  
+  0015 c601         [1]     LDAB  #1
+  0017 160000       [4]     JSR   PWMS12_SetDuty
+  705:    PWMS12_SetPeriod(20510,PWMS12_GRP0); //250 Hz.
+  001a cc501e       [2]     LDD   #20510
+  001d 6caf         [2]     STD   1,-SP
+  001f c7           [1]     CLRB  
+  0020 160000       [4]     JSR   PWMS12_SetPeriod
+  0023 1b83         [2]     LEAS  3,SP
+  706:  }
+  0025 3d           [5]     RTS   
+  707:  
+  708:  
+  709:  
+  710:  
+  711:  //increases motor speed as a result of the user placing a cube incorrectly 
+  712:  unsigned int IncreaseMotorSpeed(int difficulty)
+  713:  {
+*** EVALUATION ***
+
+Function: IncreaseMotorSpeed
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  714:    if ((difficulty + 20) > 50)
+  0001 c30014       [2]     ADDD  #20
+  0004 8c0032       [2]     CPD   #50
+  0007 2f07         [3/1]   BLE   *+9 ;abs = 0010
+  715:    {
+  716:        difficulty = 50;
+  0009 c632         [1]     LDAB  #50
+  000b 87           [1]     CLRA  
+  000c 6c80         [2]     STD   0,SP
+  717:    }else
+  000e 2011         [3]     BRA   *+19 ;abs = 0021
+  718:    {
+  719:        difficulty = difficulty + 20;
+  0010 ec80         [3]     LDD   0,SP
+  0012 c30014       [2]     ADDD  #20
+  0015 6c80         [2]     STD   0,SP
+  720:        printf("difficulty %d", difficulty);
+  0017 3b           [2]     PSHD  
+  0018 cc0000       [2]     LDD   #"difficulty %d"
+  001b 3b           [2]     PSHD  
+  001c 160000       [4]     JSR   printf
+  001f 1b84         [2]     LEAS  4,SP
+  721:    }
+  722:    PWMS12_SetDuty((unsigned char)(50-difficulty),PWMS12_CHAN0);
+  0021 c632         [1]     LDAB  #50
+  0023 e081         [3]     SUBB  1,SP
+  0025 37           [2]     PSHB  
+  0026 c7           [1]     CLRB  
+  0027 160000       [4]     JSR   PWMS12_SetDuty
+  723:    PWMS12_SetPeriod(20510,PWMS12_GRP0); 
+  002a cc501e       [2]     LDD   #20510
+  002d 6caf         [2]     STD   1,-SP
+  002f c7           [1]     CLRB  
+  0030 160000       [4]     JSR   PWMS12_SetPeriod
+  724:    
+  725:    return difficulty;
+  0033 eca1         [3]     LDD   2,+SP
+  726:  }
+  0035 30           [3]     PULX  
+  0036 3d           [5]     RTS   
+  727:  
+  728:  
+  729:  
+  730:  
+  731:  //turns off all cube LEDs and panel LEDs
+  732:  void ClearAllLEDs(void)
+  733:  {
+*** EVALUATION ***
+
+Function: ClearAllLEDs
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  734:     int j; 
+  735:     int k;
+  736:     
+  737:     for (j = 0; j < 16; j++)
+  0000 ce0000       [2]     LDX   #0
+  738:     {
+  739:       PTM &= BIT2LO;  //actually turns off all LEDs in front panel
+  0003 1d000004     [4]     BCLR  _PTM,#4
+  740:       PulseSCKU4U5(); 
+  0007 34           [2]     PSHX  
+  0008 160000       [4]     JSR   PulseSCKU4U5
+  000b 30           [3]     PULX  
+  000c 08           [1]     INX   
+  000d 8e0010       [2]     CPX   #16
+  0010 2df1         [3/1]   BLT   *-13 ;abs = 0003
+  741:     }    
+  742:     PulseRCKU4U5();
+  0012 160000       [4]     JSR   PulseRCKU4U5
+  743:        
+  744:     for (k = 0; k < NO_OF_CUBES; k++)
+  0015 ce0000       [2]     LDX   #0
+  745:     {
+  746:       PTM &= BIT1LO; //turns off all the cubes
+  0018 1d000002     [4]     BCLR  _PTM,#2
+  747:       PulseSCKU1(); 
+  001c 34           [2]     PSHX  
+  001d 160000       [4]     JSR   PulseSCKU1
+  0020 30           [3]     PULX  
+  0021 08           [1]     INX   
+  0022 8e0005       [2]     CPX   #5
+  0025 2df1         [3/1]   BLT   *-13 ;abs = 0018
+  748:     }
+  749:     PulseRCKU1();
+  0027 060000       [3]     JMP   PulseRCKU1
+  750:  }
+  751:  
+  752:  
+  753:  
+  754:  
+  755:   //Pulses the shift clock on U4/U5. PTM4
+  756:   void PulseSCKU4U5(void)
+  757:   {
+*** EVALUATION ***
+
+Function: PulseSCKU4U5
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  758:     int i;
+  759:     PTM &= BIT5LO;
+  0000 1d000020     [4]     BCLR  _PTM,#32
+  760:     for (i = 0; i < 1; i++) 
+  0004 ce0000       [2]     LDX   #0
+  0007 08           [1]     INX   
+  0008 8e0001       [2]     CPX   #1
+  000b 2dfa         [3/1]   BLT   *-4 ;abs = 0007
+  761:     {
+  762:        volatile int dummy;
+  763:     }
+  764:     
+  765:     PTM |= BIT5HI;
+  000d 1c000020     [4]     BSET  _PTM,#32
+  766:     
+  767:     return;
+  768:     
+  769:   }
+  0011 3d           [5]     RTS   
+  770:   
+  771:   
+  772:   
+  773:   
+  774:   //Pulses the shift clock on U1. PTT0
+  775:   void PulseSCKU1(void)
+  776:   {
+*** EVALUATION ***
+
+Function: PulseSCKU1
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  777:     int i;
+  778:     PTM &= BIT5LO;
+  0000 1d000020     [4]     BCLR  _PTM,#32
+  779:     for (i = 0; i < 1; i++) 
+  0004 ce0000       [2]     LDX   #0
+  0007 08           [1]     INX   
+  0008 8e0001       [2]     CPX   #1
+  000b 2dfa         [3/1]   BLT   *-4 ;abs = 0007
+  780:     {
+  781:        volatile int dummy;
+  782:     }
+  783:     
+  784:     PTM |= BIT5HI;
+  000d 1c000020     [4]     BSET  _PTM,#32
+  785:     
+  786:     return;
+  787:     
+  788:   }
+  0011 3d           [5]     RTS   
+  789:  
+  790:  
+  791:  
+  792:  
+  793:  
+  794:   //Pulses the register clock on U4/U5. PTM3
+  795:   void PulseRCKU4U5(void)
+  796:   {
+*** EVALUATION ***
+
+Function: PulseRCKU4U5
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  797:     int i;
+  798:     PTM &= BIT3LO;
+  0000 1d000008     [4]     BCLR  _PTM,#8
+  799:     for (i = 0; i < 1; i++) 
+  0004 ce0000       [2]     LDX   #0
+  0007 08           [1]     INX   
+  0008 8e0001       [2]     CPX   #1
+  000b 2dfa         [3/1]   BLT   *-4 ;abs = 0007
+  800:     {
+  801:        volatile int dummy;
+  802:     }
+  803:     PTM |= BIT3HI;
+  000d 1c000008     [4]     BSET  _PTM,#8
+  804:     
+  805:     return;
+  806:     
+  807:   }
+  0011 3d           [5]     RTS   
+  808:   
+  809:   
+  810:   
+  811:   
+  812:   //Pulses the register clock on U1. PTM0
+  813:   void PulseRCKU1(void)
+  814:   {
+*** EVALUATION ***
+
+Function: PulseRCKU1
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  815:     int i;
+  816:     PTM &= BIT0LO;
+  0000 1d000001     [4]     BCLR  _PTM,#1
+  817:     for (i = 0; i < 1; i++) 
+  0004 ce0000       [2]     LDX   #0
+  0007 08           [1]     INX   
+  0008 8e0001       [2]     CPX   #1
+  000b 2dfa         [3/1]   BLT   *-4 ;abs = 0007
+  818:     {
+  819:        volatile int dummy;
+  820:     }
+  821:     PTM |= BIT0HI;
+  000d 1c000001     [4]     BSET  _PTM,#1
+  822:     
+  823:     return;
+  824:     
+  825:     
+  826:   }
+  0011 3d           [5]     RTS   
+  827:  
+  828:  
+  829:  
+  830:  
+  831:  //activates the buzzer under the pillar of the cube that was placed incorrectly for 0.5 seconds.  
+  832:   void ActivateBuzzer(uint16_t param)
+  833:   {
+*** EVALUATION ***
+
+Function: ActivateBuzzer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6cac         [2]     STD   4,-SP
+  834:     uint16_t t = EF_Timer_GetTime();
+  0002 160000       [4]     JSR   EF_Timer_GetTime
+  0005 6c82         [2]     STD   2,SP
+  835:     puts("inbuzzer");
+  0007 cc0000       [2]     LDD   #"inbuzzer"
+  000a 160000       [4]     JSR   puts
+  836:     printf("param %d \n\r", param);
+  000d ec80         [3]     LDD   0,SP
+  000f 3b           [2]     PSHD  
+  0010 cc0000       [2]     LDD   #"param %d \012\015"
+  0013 3b           [2]     PSHD  
+  0014 160000       [4]     JSR   printf
+  837:     switch(param)
+  0017 eca3         [3]     LDD   4,+SP
+  0019 160000       [4]     JSR   _CASE_CHECKED_BYTE
+  001c 05           DC.B  5
+  001d 49           DC.B  73
+  001e 05           DC.B  5
+  001f 13           DC.B  19
+  0020 21           DC.B  33
+  0021 2f           DC.B  47
+  0022 3d           DC.B  61
+  838:     {  
+  839:        case 0:
+  840:           PTAD |= BIT4HI;
+  0023 1c000010     [4]     BSET  _PTAD,#16
+  841:           while (EF_Timer_GetTime() - t < 500)
+  0027 0741         [4]     BSR   *+67 ;abs = 006a
+  0029 25fc         [3/1]   BCS   *-2 ;abs = 0027
+  842:           {
+  843:              //do nothing
+  844:           }
+  845:           PTAD &= BIT4LO;
+  002b 1d000010     [4]     BCLR  _PTAD,#16
+  846:        break;
+  002f 2036         [3]     BRA   *+56 ;abs = 0067
+  847:           
+  848:        case 1:
+  849:           PTAD |= BIT5HI;
+  0031 1c000020     [4]     BSET  _PTAD,#32
+  850:           while (EF_Timer_GetTime() - t < 500)
+  0035 0733         [4]     BSR   *+53 ;abs = 006a
+  0037 25fc         [3/1]   BCS   *-2 ;abs = 0035
+  851:           {
+  852:              //do nothing
+  853:           }
+  854:           PTAD &= BIT5LO;
+  0039 1d000020     [4]     BCLR  _PTAD,#32
+  855:        break;
+  003d 2028         [3]     BRA   *+42 ;abs = 0067
+  856:           
+  857:        case 2:
+  858:           PTAD |= BIT6HI;
+  003f 1c000040     [4]     BSET  _PTAD,#64
+  859:           while (EF_Timer_GetTime() - t < 500)
+  0043 0725         [4]     BSR   *+39 ;abs = 006a
+  0045 25fc         [3/1]   BCS   *-2 ;abs = 0043
+  860:           {
+  861:              //do nothing
+  862:           }
+  863:           PTAD &= BIT6LO;
+  0047 1d000040     [4]     BCLR  _PTAD,#64
+  864:        break;
+  004b 201a         [3]     BRA   *+28 ;abs = 0067
+  865:           
+  866:        case 3:
+  867:           PTAD |= BIT7HI;
+  004d 1c000080     [4]     BSET  _PTAD,#128
+  868:           while (EF_Timer_GetTime() - t < 500)
+  0051 0717         [4]     BSR   *+25 ;abs = 006a
+  0053 25fc         [3/1]   BCS   *-2 ;abs = 0051
+  869:           {
+  870:              //do nothing
+  871:           }
+  872:           PTAD &= BIT7LO;
+  0055 1d000080     [4]     BCLR  _PTAD,#128
+  873:        break;   
+  0059 200c         [3]     BRA   *+14 ;abs = 0067
+  874:           
+  875:        case 4:
+  876:           PTM |= BIT4HI;
+  005b 1c000010     [4]     BSET  _PTM,#16
+  877:           while (EF_Timer_GetTime() - t < 500)
+  005f 0709         [4]     BSR   *+11 ;abs = 006a
+  0061 25fc         [3/1]   BCS   *-2 ;abs = 005f
+  878:           {
+  879:              //do nothing
+  880:           }
+  881:           PTM &= BIT4LO;
+  0063 1d000010     [4]     BCLR  _PTM,#16
+  882:        break;
+  883:     }
+  884:   }
+  0067 1b84         [2]     LEAS  4,SP
+  0069 3d           [5]     RTS   
+  006a 160000       [4]     JSR   EF_Timer_GetTime
+  006d a384         [3]     SUBD  4,SP
+  006f 8c01f4       [2]     CPD   #500
+  0072 3d           [5]     RTS   
+  885:   
+  886:   
+  887:   
+  888:   
+  889:   //turns all cubes off sequentially, and then back on sequentially to indicate a win.
+  890:   void YouWinLEDMessage(void)
+  891:   {
+*** EVALUATION ***
+
+Function: YouWinLEDMessage
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b94         [2]     LEAS  -12,SP
+  892:     char i;
+  893:     char j;
+  894:    
+  895:     uint16_t startTime;
+  896:     
+  897:     unsigned int cubesoff = ~0x1;
+  0002 ccfffe       [2]     LDD   #65534
+  0005 6c84         [2]     STD   4,SP
+  898:     unsigned int maskoff = ~0x1;
+  0007 6c8a         [2]     STD   10,SP
+  899:     
+  900:     unsigned int cubeson = 0x1;
+  0009 51           [1]     COMB  
+  000a 87           [1]     CLRA  
+  000b 6c82         [2]     STD   2,SP
+  901:     unsigned int maskon = 0x1;
+  000d 6c88         [2]     STD   8,SP
+  902:     
+  903:     puts("in win thing");
+  000f cc0000       [2]     LDD   #"in win thing"
+  0012 160000       [4]     JSR   puts
+  904:     
+  905:     for(j = 0; j < NO_OF_CUBES; j++)
+  0015 6981         [2]     CLR   1,SP
+  906:     {      
+  907:        cubesoff = cubesoff & maskoff;
+  0017 ec84         [3]     LDD   4,SP
+  0019 e48b         [3]     ANDB  11,SP
+  001b a48a         [3]     ANDA  10,SP
+  001d 6c84         [2]     STD   4,SP
+  908:        for (i = 0; i < NO_OF_CUBES; i++)
+  001f 6980         [2]     CLR   0,SP
+  909:        {
+  910:           if ((cubesoff>>i)&1 == 1)//finds the ith bit of cubes off
+  0021 e680         [3]     LDAB  0,SP
+  0023 ed84         [3]     LDY   4,SP
+  0025 160000       [4]     JSR   _ISHRU
+  0028 c401         [1]     ANDB  #1
+  002a 2706         [3/1]   BEQ   *+8 ;abs = 0032
+  911:           {
+  912:              PTM |= BIT1HI;
+  002c 1c000002     [4]     BSET  _PTM,#2
+  913:           }else
+  0030 2004         [3]     BRA   *+6 ;abs = 0036
+  914:           {
+  915:              PTM &= BIT1LO;
+  0032 1d000002     [4]     BCLR  _PTM,#2
+  916:           }
+  917:           PulseSCKU1();
+  0036 075c         [4]     BSR   *+94 ;abs = 0094
+  0038 2de7         [3/1]   BLT   *-23 ;abs = 0021
+  918:        }
+  919:        PulseRCKU1();
+  003a 0762         [4]     BSR   *+100 ;abs = 009e
+  920:        startTime=EF_Timer_GetTime();//wait for 500 milliseconds and therefore 0.5 sec
+  921:        while(EF_Timer_GetTime()<(startTime+500));
+  003c 0748         [4]     BSR   *+74 ;abs = 0086
+  003e 25fc         [3/1]   BCS   *-2 ;abs = 003c
+  922:        cubesoff = cubesoff << 1;
+  0040 6885         [3]     LSL   5,SP
+  0042 6584         [3]     ROL   4,SP
+  0044 6281         [3]     INC   1,SP
+  0046 e681         [3]     LDAB  1,SP
+  0048 c105         [1]     CMPB  #5
+  004a 2dcb         [3/1]   BLT   *-51 ;abs = 0017
+  923:     }
+  924:     
+  925:     for(j = 0; j < NO_OF_CUBES; j++)
+  004c 6981         [2]     CLR   1,SP
+  926:     {      
+  927:        cubeson = cubeson | maskon;
+  004e ec82         [3]     LDD   2,SP
+  0050 ea89         [3]     ORAB  9,SP
+  0052 aa88         [3]     ORAA  8,SP
+  0054 6c82         [2]     STD   2,SP
+  928:        for (i = 0; i < NO_OF_CUBES; i++)
+  0056 6980         [2]     CLR   0,SP
+  929:        {
+  930:           if ((cubeson>>i)&1 == 1)
+  0058 e680         [3]     LDAB  0,SP
+  005a ed82         [3]     LDY   2,SP
+  005c 160000       [4]     JSR   _ISHRU
+  005f c401         [1]     ANDB  #1
+  0061 2706         [3/1]   BEQ   *+8 ;abs = 0069
+  931:           {
+  932:              PTM |= BIT1HI;
+  0063 1c000002     [4]     BSET  _PTM,#2
+  933:           }else
+  0067 2004         [3]     BRA   *+6 ;abs = 006d
+  934:           {
+  935:              PTM &= BIT1LO;
+  0069 1d000002     [4]     BCLR  _PTM,#2
+  936:           }
+  937:           PulseSCKU1();
+  006d 0725         [4]     BSR   *+39 ;abs = 0094
+  006f 2de7         [3/1]   BLT   *-23 ;abs = 0058
+  938:        }
+  939:        PulseRCKU1();
+  0071 072b         [4]     BSR   *+45 ;abs = 009e
+  940:        startTime=EF_Timer_GetTime();//wait for 500 milliseconds and therefore 0.5 sec
+  941:        while(EF_Timer_GetTime()<(startTime+500));
+  0073 0711         [4]     BSR   *+19 ;abs = 0086
+  0075 25fc         [3/1]   BCS   *-2 ;abs = 0073
+  942:        cubeson = cubeson << 1;
+  0077 6883         [3]     LSL   3,SP
+  0079 6582         [3]     ROL   2,SP
+  007b 6281         [3]     INC   1,SP
+  007d e681         [3]     LDAB  1,SP
+  007f c105         [1]     CMPB  #5
+  0081 2dcb         [3/1]   BLT   *-51 ;abs = 004e
+  943:     }
+  944:   }
+  0083 1b8c         [2]     LEAS  12,SP
+  0085 3d           [5]     RTS   
+  0086 160000       [4]     JSR   EF_Timer_GetTime
+  0089 b745         [1]     TFR   D,X
+  008b ec88         [3]     LDD   8,SP
+  008d c301f4       [2]     ADDD  #500
+  0090 3b           [2]     PSHD  
+  0091 aeb1         [3]     CPX   2,SP+
+  0093 3d           [5]     RTS   
+  0094 160000       [4]     JSR   PulseSCKU1
+  0097 6282         [3]     INC   2,SP
+  0099 e682         [3]     LDAB  2,SP
+  009b c105         [1]     CMPB  #5
+  009d 3d           [5]     RTS   
+  009e 160000       [4]     JSR   PulseRCKU1
+  00a1 160000       [4]     JSR   EF_Timer_GetTime
+  00a4 6c88         [2]     STD   8,SP
+  00a6 3d           [5]     RTS   
+  945:   
+  946:   
+  947:   
+  948:  
+  949:  //brings all 5 pillars down to about the halfway point, then pushes the outer pillars and inner pillar
+  950:  //up and down in an alternating fashion for 2 complete loops. 
+  951:   void AlternatePillars(void)
+  952:   {
+*** EVALUATION ***
+
+Function: AlternatePillars
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9c         [2]     LEAS  -4,SP
+  953:     uint16_t startTime;
+  954:     int i;
+  955:  
+  956:     PTT |= BIT5HI; //enables LB293
+  0002 1c000020     [4]     BSET  _PTT,#32
+  957:     PTT &= BIT3LO; //turns on motor 1 --assume LO is in motor-down direction
+  0006 1d000008     [4]     BCLR  _PTT,#8
+  958:     PTT &= BIT4LO; //turns on motors 2,3 -- assume LO is in motor-down direction
+  000a 075b         [4]     BSR   *+93 ;abs = 0067
+  959:     
+  960:     startTime=EF_Timer_GetTime();//wait for 3000 milliseconds and therefore 3 sec
+  961:     while(EF_Timer_GetTime()<(startTime+3000));
+  000c 0751         [4]     BSR   *+83 ;abs = 005f
+  000e c30bb8       [2]     ADDD  #3000
+  0011 3b           [2]     PSHD  
+  0012 aeb1         [3]     CPX   2,SP+
+  0014 25f6         [3/1]   BCS   *-8 ;abs = 000c
+  962:     
+  963:     //splits the two groups of pillars first to set up for alternation.
+  964:     PTT |= BIT3HI; //turns on motor 1 --assume HI is in motor-up direction
+  0016 1c000008     [4]     BSET  _PTT,#8
+  965:     PTT &= BIT4LO; //turns on motors 2,3 -- assume LO is in motor-down direction
+  001a 074b         [4]     BSR   *+77 ;abs = 0067
+  966:     
+  967:     startTime=EF_Timer_GetTime();//wait for 1000 milliseconds and therefore 1 sec
+  968:     while(EF_Timer_GetTime()<(startTime+1000)); //we use 1000 instead of 1000 to make sure no limits are exceeded
+  001c 0741         [4]     BSR   *+67 ;abs = 005f
+  001e c303e8       [2]     ADDD  #1000
+  0021 3b           [2]     PSHD  
+  0022 aeb1         [3]     CPX   2,SP+
+  0024 25f6         [3/1]   BCS   *-8 ;abs = 001c
+  969:  
+  970:     for (i = 0; i<2; i++)                                                                         
+  0026 c7           [1]     CLRB  
+  0027 87           [1]     CLRA  
+  0028 6c82         [2]     STD   2,SP
+  971:     {
+  972:        PTT &= BIT3LO; //turns on motor 1 --assume LO is in motor-down direction
+  002a 0745         [4]     BSR   *+71 ;abs = 0071
+  973:        PTT |= BIT4HI; //turns on motors 2,3 -- assume HI is in motor-up direction
+  974:     
+  975:        startTime=EF_Timer_GetTime();//wait for 2000 milliseconds and therefore 2 sec
+  976:        while(EF_Timer_GetTime()<(startTime+2000)); //we use 2000 instead of 2000 to make sure no limits are exceeded
+  002c 0731         [4]     BSR   *+51 ;abs = 005f
+  002e c307d0       [2]     ADDD  #2000
+  0031 3b           [2]     PSHD  
+  0032 aeb1         [3]     CPX   2,SP+
+  0034 25f6         [3/1]   BCS   *-8 ;abs = 002c
+  977:     
+  978:        PTT |= BIT3HI; //turns on motor 1 --assume HI is in motor-up direction
+  0036 1c000008     [4]     BSET  _PTT,#8
+  979:        PTT &= BIT4LO; //turns on motors 2,3 -- assume LO is in motor-down direction
+  003a 072b         [4]     BSR   *+45 ;abs = 0067
+  980:     
+  981:        startTime=EF_Timer_GetTime();//wait for 2000 milliseconds and therefore 2 sec
+  982:        while(EF_Timer_GetTime()<(startTime+2000)); //we use 2000 instead of 2000 to make sure no limits are exceeded
+  003c 0721         [4]     BSR   *+35 ;abs = 005f
+  003e c307d0       [2]     ADDD  #2000
+  0041 3b           [2]     PSHD  
+  0042 aeb1         [3]     CPX   2,SP+
+  0044 25f6         [3/1]   BCS   *-8 ;abs = 003c
+  0046 ee82         [3]     LDX   2,SP
+  0048 08           [1]     INX   
+  0049 6e82         [2]     STX   2,SP
+  004b 8e0002       [2]     CPX   #2
+  004e 2dda         [3/1]   BLT   *-36 ;abs = 002a
+  983:     }
+  984:     
+  985:     //brings the two groups of pillars back together so that they are level again.
+  986:     PTT &= BIT3LO; //turns on motor 1 --assume HI is in motor-up direction
+  0050 071f         [4]     BSR   *+33 ;abs = 0071
+  987:     PTT |= BIT4HI; //turns on motors 2,3 -- assume LO is in motor-down direction
+  988:     
+  989:     startTime=EF_Timer_GetTime();//wait for 1000 milliseconds and therefore 1 sec
+  990:     while(EF_Timer_GetTime()<(startTime+1000)); //we use 1000 instead of 1000 to make sure no limits are exceeded
+  0052 070b         [4]     BSR   *+13 ;abs = 005f
+  0054 c303e8       [2]     ADDD  #1000
+  0057 3b           [2]     PSHD  
+  0058 aeb1         [3]     CPX   2,SP+
+  005a 25f6         [3/1]   BCS   *-8 ;abs = 0052
+  991:  
+  992:   }
+  005c 1b84         [2]     LEAS  4,SP
+  005e 3d           [5]     RTS   
+  005f 160000       [4]     JSR   EF_Timer_GetTime
+  0062 b745         [1]     TFR   D,X
+  0064 ec82         [3]     LDD   2,SP
+  0066 3d           [5]     RTS   
+  0067 1d000010     [4]     BCLR  _PTT,#16
+  006b 160000       [4]     JSR   EF_Timer_GetTime
+  006e 6c82         [2]     STD   2,SP
+  0070 3d           [5]     RTS   
+  0071 1d000008     [4]     BCLR  _PTT,#8
+  0075 1c000010     [4]     BSET  _PTT,#16
+  0079 160000       [4]     JSR   EF_Timer_GetTime
+  007c 6c82         [2]     STD   2,SP
+  007e 3d           [5]     RTS   
+  993:   
+  994:   
+  995:   
+  996:   
+  997:   //stops all the motors from running at all.
+  998:   void StopAllMotors(void)
+  999:   {
+*** EVALUATION ***
+
+Function: StopAllMotors
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+ 1000:     PTT &= BIT5LO; //disables LB293.
+  0000 1d000020     [4]     BCLR  _PTT,#32
+ 1001:     return;
+ 1002:   }
+  0004 3d           [5]     RTS   
+ 1003:   
+ 1004:   //compares the user's current answer with the computer's answer to check whether or not the user has won.
+ 1005:   boolean CompareAnswers(void)
+ 1006:   {
+*** EVALUATION ***
+
+Function: CompareAnswers
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\DiscoCubesSM.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\DiscoCubesSM.c.o" -WmsgSd1106 -WmsgSd1420
+
+ 1007:     int i;
+ 1008:     
+ 1009:     for (i = 0; i < NO_OF_CUBES; i++)
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 3b           [2]     PSHD  
+ 1010:     {
+ 1011:        if (usersanswer[i] != computersanswer[i])
+  0003 ee80         [3]     LDX   0,SP
+  0005 e6e20000     [4]     LDAB  usersanswer,X
+  0009 e1e20000     [4]     CMPB  computersanswer,X
+  000d 2703         [3/1]   BEQ   *+5 ;abs = 0012
+ 1012:        {
+ 1013:           return False;
+  000f c7           [1]     CLRB  
+  0010 200a         [3]     BRA   *+12 ;abs = 001c
+  0012 08           [1]     INX   
+  0013 6e80         [2]     STX   0,SP
+  0015 8e0005       [2]     CPX   #5
+  0018 2de9         [3/1]   BLT   *-21 ;abs = 0003
+ 1014:        }
+ 1015:     }
+ 1016:     return True;
+  001a c601         [1]     LDAB  #1
+ 1017:   }
+  001c 30           [3]     PULX  
+  001d 3d           [5]     RTS   
+ 1018:   
+ 1019:   
+ 1020:   

@@ -1,0 +1,371 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /****************************************************************************
+    2:   Module
+    3:       EF_Queue.c
+    4:   Description
+    5:       Implements a FIFO circular buffer of EF_Event in a block of memory
+    6:   Notes
+    7:  
+    8:   History
+    9:   When           Who     What/Why
+   10:   -------------- ---     --------
+   11:   08/09/11 18:16 jec      started coding
+   12:  *****************************************************************************/
+   13:  /*----------------------------- Include Files -----------------------------*/
+   14:  #include "EF_Queue.h"
+   15:  #include "misc.h"
+   16:  #include <ME218_C32.h>
+   17:  
+   18:  /*----------------------------- Module Defines ----------------------------*/
+   19:  // QueueSize is max number of entries in the queue
+   20:  // CurrentIndex is the 'read-from' index,
+   21:  // actually CurrentIndex + sizeof(EF_Queue_t)
+   22:  // entries are made to CurrentIndex + NumEntries + sizeof(EF_Queue_t)
+   23:  typedef struct {  unsigned char QueueSize;
+   24:                    unsigned char CurrentIndex;
+   25:                    unsigned char NumEntries;
+   26:  } EF_Queue_t;
+   27:  
+   28:  typedef EF_Queue_t * pQueue_t;
+   29:  
+   30:  /*---------------------------- Module Functions ---------------------------*/
+   31:  
+   32:  /*---------------------------- Module Variables ---------------------------*/
+   33:  
+   34:  /*------------------------------ Module Code ------------------------------*/
+   35:  /****************************************************************************
+   36:   Function
+   37:     EF_InitQueue
+   38:   Parameters
+   39:     EF_Event * pBlock : pointer to the block of memory to use for the Queue
+   40:     unsigned char BlockSize: size of the block pointed to by pBlock
+   41:   Returns
+   42:     max number of entries in the created queue
+   43:   Description
+   44:     Initializes a queue structure at the beginning of the block of memory
+   45:   Notes
+   46:     you should pass it a block that is at least sizeof(EF_Queue_t) larger than 
+   47:     the number of entries that you want in the queue. Since the size of an 
+   48:     EF_Event (at 4 bytes; 2 enum, 2 param) is greater than the 
+   49:     sizeof(EF_Queue_t), you only need to declare an array of EF_Event
+   50:     with 1 more element than you need for the actual queue.
+   51:   Author
+   52:     J. Edward Carryer, 08/09/11, 18:40
+   53:  ****************************************************************************/
+   54:  unsigned char EF_InitQueue( EF_Event * pBlock, unsigned char BlockSize )
+   55:  {
+*** EVALUATION ***
+
+Function: EF_InitQueue
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Queue.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Queue.c.o" -WmsgSd1106 -WmsgSd1420
+
+   56:     pQueue_t pThisQueue;
+   57:     // initialize the Queue by setting up initial values for elements
+   58:     pThisQueue = (pQueue_t)pBlock;
+   59:     // use all but the structure overhead as the Queue
+   60:     pThisQueue->QueueSize = BlockSize - 1;
+  0000 53           [1]     DECB  
+  0001 ee82         [3]     LDX   2,SP
+  0003 6b00         [2]     STAB  0,X
+   61:     pThisQueue->CurrentIndex = 0;
+   62:     pThisQueue->NumEntries = 0;
+  0005 c7           [1]     CLRB  
+  0006 87           [1]     CLRA  
+  0007 6c01         [2]     STD   1,X
+   63:     return(pThisQueue->QueueSize);
+  0009 e600         [3]     LDAB  0,X
+   64:  }
+  000b 3d           [5]     RTS   
+   65:  
+   66:  /****************************************************************************
+   67:   Function
+   68:     EF_EnQueueFIFO
+   69:   Parameters
+   70:     EF_Event * pBlock : pointer to the block of memory in use as the Queue
+   71:     EF_Event Event2Add : event to be added to the Queue
+   72:   Returns
+   73:     boolean : True if the add was successful, False if not
+   74:   Description
+   75:     if it will fit, adds Event2Add to the Queue
+   76:   Notes
+   77:  
+   78:    Author
+   79:     J. Edward Carryer, 08/09/11, 18:59
+   80:  ****************************************************************************/
+   81:  boolean EF_EnQueueFIFO( EF_Event * pBlock, EF_Event Event2Add )
+   82:  {
+*** EVALUATION ***
+
+Function: EF_EnQueueFIFO
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Queue.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Queue.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6cac         [2]     STD   4,-SP
+  0002 34           [2]     PSHX  
+   83:     pQueue_t pThisQueue;
+   84:     pThisQueue = (pQueue_t)pBlock;
+  0003 ee88         [3]     LDX   8,SP
+  0005 6e84         [2]     STX   4,SP
+   85:     // index will go from 0 to QueueSize-1 so use '<'
+   86:     if ( pThisQueue->NumEntries < pThisQueue->QueueSize)
+  0007 e602         [3]     LDAB  2,X
+  0009 e100         [3]     CMPB  0,X
+  000b 2437         [3/1]   BCC   *+57 ;abs = 0044
+   87:     {  // save the new event, use % to create circular buffer in block
+   88:        // 1+ to step past the Queue struct at the beginning of the
+   89:        // block
+   90:        EnterCritical();   // save interrupt state, turn ints off
+  000d 39           [2]     PSHC  
+  000e 1410         [1]     SEI   
+  0010 180db00000   [5]     MOVB  1,SP+,_CCR_temp
+   91:        pBlock[ 1 + ((pThisQueue->CurrentIndex + pThisQueue->NumEntries)
+  0015 ee84         [3]     LDX   4,SP
+  0017 e601         [3]     LDAB  1,X
+  0019 87           [1]     CLRA  
+  001a b746         [1]     TFR   D,Y
+  001c e602         [3]     LDAB  2,X
+  001e 19ee         [2]     LEAY  D,Y
+  0020 e600         [3]     LDAB  0,X
+  0022 b7c6         [1]     EXG   D,Y
+  0024 b7d6         [1]     EXG   X,Y
+  0026 1815         [12]    IDIVS 
+  0028 59           [1]     LSLD  
+  0029 59           [1]     LSLD  
+  002a c30004       [2]     ADDD  #4
+  002d e388         [3]     ADDD  8,SP
+  002f ee80         [3]     LDX   0,SP
+  0031 b7d4         [1]     EXG   X,D
+  0033 6c00         [2]     STD   0,X
+  0035 ec82         [3]     LDD   2,SP
+  0037 6c02         [2]     STD   2,X
+   92:                 % pThisQueue->QueueSize)] = Event2Add;
+   93:        pThisQueue->NumEntries++;          // inc number of entries
+  0039 6242         [3]     INC   2,Y
+   94:        ExitCritical();  // restore saved interrupt state
+  003b 1809af0000   [5]     MOVB  _CCR_temp,1,-SP
+  0040 38           [3]     PULC  
+   95:        
+   96:        return(True);
+  0041 c601         [1]     LDAB  #1
+  0043 21           [1]     SKIP1 
+   97:     }else
+   98:        return(False);
+  0044 c7           [1]     CLRB  
+   99:  }
+  0045 1b86         [2]     LEAS  6,SP
+  0047 3d           [5]     RTS   
+  100:  
+  101:  
+  102:  /****************************************************************************
+  103:   Function
+  104:     EF_DeQueue
+  105:   Parameters
+  106:     unsigned char * pBlock : pointer to the block of memory in use as the Queue
+  107:   Returns
+  108:     next available entry from Queue, EF_NO_EVENT if Queue was empty
+  109:   Description
+  110:     reads from the Queue
+  111:   Notes
+  112:  
+  113:   Author
+  114:     J. Edward Carryer, 08/09/11, 19:11
+  115:  ****************************************************************************/
+  116:  EF_Event EF_DeQueue( EF_Event * pBlock )
+  117:  {
+*** EVALUATION ***
+
+Function: EF_DeQueue
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Queue.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Queue.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6ca8         [2]     STD   8,-SP
+  118:     pQueue_t pThisQueue;
+  119:     EF_Event ReturnEvent;
+  120:  
+  121:     pThisQueue = (pQueue_t)pBlock;
+  0002 6c86         [2]     STD   6,SP
+  122:     if ( pThisQueue->NumEntries > 0)
+  0004 b745         [1]     TFR   D,X
+  0006 e602         [3]     LDAB  2,X
+  0008 2737         [3/1]   BEQ   *+57 ;abs = 0041
+  123:     {
+  124:        EnterCritical();   // save interrupt state, turn ints off
+  000a 39           [2]     PSHC  
+  000b 1410         [1]     SEI   
+  000d 180db00000   [5]     MOVB  1,SP+,_CCR_temp
+  125:        ReturnEvent = pBlock[ 1 + pThisQueue->CurrentIndex ];
+  0012 ee86         [3]     LDX   6,SP
+  0014 e601         [3]     LDAB  1,X
+  0016 87           [1]     CLRA  
+  0017 59           [1]     LSLD  
+  0018 59           [1]     LSLD  
+  0019 c30004       [2]     ADDD  #4
+  001c e380         [3]     ADDD  0,SP
+  001e b746         [1]     TFR   D,Y
+  0020 ec40         [3]     LDD   0,Y
+  0022 6c82         [2]     STD   2,SP
+  0024 ec42         [3]     LDD   2,Y
+  0026 6c84         [2]     STD   4,SP
+  126:        // inc the index
+  127:        pThisQueue->CurrentIndex++;
+  0028 6201         [3]     INC   1,X
+  128:        // this way we only do the modulo operation when we really need to
+  129:        if (pThisQueue->CurrentIndex >=  pThisQueue->QueueSize)
+  002a e601         [3]     LDAB  1,X
+  002c e100         [3]     CMPB  0,X
+  002e 2507         [3/1]   BCS   *+9 ;abs = 0037
+  130:           pThisQueue->CurrentIndex = (unsigned char)(pThisQueue->CurrentIndex % pThisQueue->QueueSize);
+  0030 a600         [3]     LDAA  0,X
+  0032 160000       [4]     JSR   _BDIVMODU
+  0035 6b01         [2]     STAB  1,X
+  131:        pThisQueue->NumEntries--; //dec number of elements since we took 1 out
+  0037 6302         [3]     DEC   2,X
+  132:        ExitCritical();  // restore saved interrupt state
+  0039 1809af0000   [5]     MOVB  _CCR_temp,1,-SP
+  003e 38           [3]     PULC  
+  133:     }else {
+  003f 2006         [3]     BRA   *+8 ;abs = 0047
+  134:        ReturnEvent.EventType = EF_NO_EVENT;
+  0041 c7           [1]     CLRB  
+  0042 87           [1]     CLRA  
+  0043 6c82         [2]     STD   2,SP
+  135:        ReturnEvent.EventParam = 0;
+  0045 6c84         [2]     STD   4,SP
+  136:     }
+  137:     return(ReturnEvent);
+  0047 ee8a         [3]     LDX   10,SP
+  0049 ec82         [3]     LDD   2,SP
+  004b 6c00         [2]     STD   0,X
+  004d ec84         [3]     LDD   4,SP
+  004f 6c02         [2]     STD   2,X
+  138:  }
+  0051 1b88         [2]     LEAS  8,SP
+  0053 3d           [5]     RTS   
+  139:  
+  140:  /****************************************************************************
+  141:   Function
+  142:     EF_IsQueueEmpty
+  143:   Parameters
+  144:     unsigned char * pBlock : pointer to the block of memory in use as the Queue
+  145:   Returns
+  146:     boolean : True if Queue is empty
+  147:   Description
+  148:     see above
+  149:   Notes
+  150:  
+  151:   Author
+  152:     J. Edward Carryer, 08/10/11, 13:29
+  153:  ****************************************************************************/
+  154:  boolean EF_IsQueueEmpty( EF_Event * pBlock )
+  155:  {
+*** EVALUATION ***
+
+Function: EF_IsQueueEmpty
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Queue.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Queue.c.o" -WmsgSd1106 -WmsgSd1420
+
+  156:     pQueue_t pThisQueue;
+  157:  
+  158:     pThisQueue = (pQueue_t)pBlock;
+  159:     return(pThisQueue->NumEntries == 0);
+  0000 b745         [1]     TFR   D,X
+  0002 e602         [3]     LDAB  2,X
+  0004 2702         [3/1]   BEQ   *+4 ;abs = 0008
+  0006 c7           [1]     CLRB  
+  0007 8f           [2]     SKIP2 
+  0008 c601         [1]     LDAB  #1
+  160:  }
+  000a 3d           [5]     RTS   
+  161:  
+  162:  #if 0
+  163:  /****************************************************************************
+  164:   Function
+  165:     QueueFlushQueue
+  166:   Parameters
+  167:     unsigned char * pBlock : pointer to the block of memory in use as the Queue
+  168:   Returns
+  169:     nothing
+  170:   Description
+  171:     flushes the Queue by reinitializing the indecies
+  172:   Notes
+  173:  
+  174:   Author
+  175:     J. Edward Carryer, 08/12/06, 19:24
+  176:  ****************************************************************************/
+  177:  void QueueFlushQueue( unsigned char * pBlock )
+  178:  {
+  179:     pQueue_t pThisQueue;
+  180:     // doing this with a Queue structure is not strictly necessary
+  181:     // but makes it clearer what is going on.
+  182:     pThisQueue = (pQueue_t)pBlock;
+  183:     pThisQueue->CurrentIndex = 0;
+  184:     pThisQueue->NumEntries = 0;
+  185:     return;
+  186:  }
+  187:  
+  188:  
+  189:  #endif
+  190:  /***************************************************************************
+  191:   private functions
+  192:   ***************************************************************************/
+  193:  
+  194:  
+  195:  
+  196:  
+  197:  
+  198:  
+  199:  
+  200:  
+  201:  
+  202:  
+  203:  
+  204:  
+  205:  
+  206:  
+  207:  
+  208:  
+  209:  
+  210:  
+  211:  
+  212:  
+  213:  
+  214:  
+  215:  
+  216:  
+  217:  
+  218:  
+  219:  
+  220:  
+  221:  
+  222:  
+  223:  
+  224:  
+  225:  
+  226:  
+  227:  
+  228:  
+  229:  
+  230:  
+  231:  
+  232:  
+  233:  
+  234:  
+  235:  
+  236:  
+  237:  
+  238:  
+  239:  
+  240:  
+  241:  
+  242:  
+  243:  
+  244:  
+  245:  
+  246:  
+  247:  
+  248:  
+  249:  
+  250:  

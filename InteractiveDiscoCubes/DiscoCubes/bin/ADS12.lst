@@ -1,0 +1,359 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //#define TEST
+    2:  /****************************************************************************
+    3:   Copyright (C) Creative Applications Engineering 2004.
+    4:   Permission granted to freely use this file as long as this header remains
+    5:   intact.
+    6:  
+    7:   Description
+    8:           Library to provide simplified setup of Port AD and the Analog
+    9:           to Digital converter on the '9S12.
+   10:  
+   11:   Notes
+   12:  
+   13:  
+   14:   History
+   15:   When           Who	What/Why
+   16:   -------------- ---	--------
+   17:   05/02/07 20:49 jec  corrected definition of FreezeMode
+   18:   06/22/04 20:03 jec  first pass
+   19:  ****************************************************************************/
+   20:  
+   21:  /*----------------------------- Include Files -----------------------------*/
+   22:  
+   23:  #include <hidef.h>         /* common defines and macros */
+   24:  #include <mc9s12c32.h>     /* derivative information */
+   25:  #include <S12C32bits.h>    /* bit definitions  */
+   26:  #include <ads12.h>
+   27:  #include <string.h>
+   28:  
+   29:  /*----------------------------- Module Defines ----------------------------*/
+   30:  #define NumBitsPortAD 8
+   31:  #define BadADNum 8
+   32:  /* BaseIndex is used to read mode string right to left */
+   33:  #define BaseIndex (NumBitsPortAD-1)
+   34:  /*set the A/D converter to finish conversion when entering freeze mode */
+   35:  #define ADFreezeMode _S12_FRZ1
+   36:  /*shift to get the number of channels into the right bits to program ADCTL3 */
+   37:  #define ChanShift 3
+   38:  /*shift to get the sample clocks into the right bits to program ADCTL4 */
+   39:  #define ADSampShift 5
+   40:  /* for ADSampTime 0= 2clks, 1= 4 clks, 2= 8 clks, 3= 16 clks */
+   41:  #define ADSampTime 0x00
+   42:  /* legal values for ADClockDiv are even values 2-64 */
+   43:  #define ADClockDiv 12
+   44:  #define ADClockDivBits ((ADClockDiv-2)>>1)
+   45:  
+   46:  /*------------------------------ Module Types -----------------------------*/
+   47:  /*---------------------------- Private Functions ---------------------------*/
+   48:  /*---------------------------- Module Variables ---------------------------*/
+   49:  /* initializer on FirstADPin needs to be illegal value */
+   50:  static unsigned char FirstADPin = BadADNum;
+   51:  static unsigned char NumADChannels=0;
+   52:  
+   53:  /*------------------------------ Module Code ------------------------------*/
+   54:  /****************************************************************************
+   55:   Function
+   56:           ADS12_Init
+   57:  
+   58:   Parameters
+   59:           char [9] A null terminated string of 8 ASCII characters to describe
+   60:              the mode of each of the pins on Port AD. the legal values are:
+   61:              I for digital input, O for digital output, A for analog input.
+   62:              The string positions, reading left to right, corresspond to the
+   63:              pins MSB to LSB (modeString[0]=MSB, modeString[7]=LSB)
+   64:  
+   65:   Returns
+   66:           ADS12_Err if the input string is malformed
+   67:           ADS12_OK if the mode string was OK
+   68:  
+   69:   Description
+   70:           Initializes Port AD data direction register & ATDDIEN for digital I/O
+   71:           and the A/D converter to multi-channel, continious conversion.
+   72:  
+   73:   Notes
+   74:           Assumes a 24MHz bus clock, but simply sets the defualt values for now.
+   75:           Enforces a single block of A/D channels even though it is possible to
+   76:           make a contigious sequence that occupies a non-contigious block. For
+   77:           example, channels 6,7,0,& 1 are sequence contigious but occupy 2 blocks
+   78:           so would be rejected by this code.
+   79:  
+   80:   Author
+   81:           J. Edward Carryer, 06/22/04 20:15
+   82:  ****************************************************************************/
+   83:  ADS12ReturnTyp ADS12_Init(char * modeString)
+   84:  {
+*** EVALUATION ***
+
+Function: ADS12_Init
+Source  : U:\_Samples\ADS12\ADS12.C
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\ADS12.C.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6cab         [2]     STD   5,-SP
+  0002 3b           [2]     PSHD  
+   85:      unsigned char i;
+   86:      unsigned char OutputPins = 0;
+  0003 6985         [2]     CLR   5,SP
+   87:      unsigned char InputPins = 0;
+  0005 6986         [2]     CLR   6,SP
+   88:  
+   89:      if ( strlen(modeString) != NumBitsPortAD)
+  0007 160000       [4]     JSR   strlen
+  000a 8c0008       [2]     CPD   #8
+  000d 2662         [3/1]   BNE   *+100 ;abs = 0071
+   90:          return ADS12_Err;
+   91:      FirstADPin  = BadADNum;  /* clear values from any previous call */
+  000f c608         [1]     LDAB  #8
+  0011 7b0000       [3]     STAB  FirstADPin
+   92:      NumADChannels = 0;
+  0014 790000       [3]     CLR   NumADChannels
+   93:     /* scan through the string and find the type of each pin, preparing the
+   94:        mode programming values as we go */
+   95:      for ( i=0; i< NumBitsPortAD; i++)
+  0017 6984         [2]     CLR   4,SP
+   96:      {      /* step through the bits in the string, right to left */
+   97:          switch ( modeString[BaseIndex-i] )
+  0019 e684         [3]     LDAB  4,SP
+  001b 87           [1]     CLRA  
+  001c 6c80         [2]     STD   0,SP
+  001e c607         [1]     LDAB  #7
+  0020 a380         [3]     SUBD  0,SP
+  0022 e382         [3]     ADDD  2,SP
+  0024 b745         [1]     TFR   D,X
+  0026 e600         [3]     LDAB  0,X
+  0028 c14f         [1]     CMPB  #79
+  002a 2245         [3/1]   BHI   *+71 ;abs = 0071
+  002c c141         [1]     CMPB  #65
+  002e 2724         [3/1]   BEQ   *+38 ;abs = 0054
+  0030 c149         [1]     CMPB  #73
+  0032 2706         [3/1]   BEQ   *+8 ;abs = 003a
+  0034 c14f         [1]     CMPB  #79
+  0036 270f         [3/1]   BEQ   *+17 ;abs = 0047
+   98:          {
+   99:              case 'I' :  InputPins |= 0x01<<i;  /* add bit to mask */
+  100:                          break;
+  101:              case 'O' :  OutputPins |= 0x01<<i;  /* add bit to mask */
+  102:                          break;
+  103:              case 'A' :  if ( FirstADPin == BadADNum)/* no AD defined yet */
+  104:                          {
+  105:                              FirstADPin = i;
+  106:                              NumADChannels++;
+  107:                          }else  /* AD pin sequence has started be sure its OK */
+  108:                          { /* this test for non-contigious assume we are scanning
+  109:                               right to left through the string */
+  110:                              if ( i != (FirstADPin + NumADChannels))
+  111:                                  return ADS12_Err;  /* AD pins not contiguious */
+  112:                              else
+  113:                                  NumADChannels++;
+  114:                          }
+  115:                          break;
+  116:              default :   return ADS12_Err;
+  0038 2037         [3]     BRA   *+57 ;abs = 0071
+  003a c601         [1]     LDAB  #1
+  003c a684         [3]     LDAA  4,SP
+  003e 160000       [4]     JSR   _BSHL
+  0041 ea86         [3]     ORAB  6,SP
+  0043 6b86         [2]     STAB  6,SP
+  0045 2030         [3]     BRA   *+50 ;abs = 0077
+  0047 c601         [1]     LDAB  #1
+  0049 a684         [3]     LDAA  4,SP
+  004b 160000       [4]     JSR   _BSHL
+  004e ea85         [3]     ORAB  5,SP
+  0050 6b85         [2]     STAB  5,SP
+  0052 2023         [3]     BRA   *+37 ;abs = 0077
+  0054 f60000       [3]     LDAB  FirstADPin
+  0057 c108         [1]     CMPB  #8
+  0059 2607         [3/1]   BNE   *+9 ;abs = 0062
+  005b e684         [3]     LDAB  4,SP
+  005d 7b0000       [3]     STAB  FirstADPin
+  0060 2012         [3]     BRA   *+20 ;abs = 0074
+  0062 87           [1]     CLRA  
+  0063 b745         [1]     TFR   D,X
+  0065 f60000       [3]     LDAB  NumADChannels
+  0068 1ae6         [2]     LEAX  D,X
+  006a 34           [2]     PSHX  
+  006b ec82         [3]     LDD   2,SP
+  006d acb1         [3]     CPD   2,SP+
+  006f 2703         [3/1]   BEQ   *+5 ;abs = 0074
+  0071 c7           [1]     CLRB  
+  0072 2032         [3]     BRA   *+52 ;abs = 00a6
+  0074 720000       [4]     INC   NumADChannels
+  0077 6284         [3]     INC   4,SP
+  0079 e684         [3]     LDAB  4,SP
+  007b c108         [1]     CMPB  #8
+  007d 259a         [3/1]   BCS   *-100 ;abs = 0019
+  117:          }
+  118:      }
+  119:      if ( NumADChannels != 0)  /* if we requested A/D channels, set them up */
+  007f f60000       [3]     LDAB  NumADChannels
+  0082 2715         [3/1]   BEQ   *+23 ;abs = 0099
+  120:      {
+  121:      /* power up the a/d converter */
+  122:          ATDCTL2 |= _S12_ADPU;
+  0084 4c0080       [4]     BSET  _ATDCTL23,#128
+  123:      /* set up conversion sequnce length based on number of A/D channels
+  124:        requested. Disable the FIFO mode. set Freeze mode behavior */
+  125:          ATDCTL3 = ((NumADChannels << ChanShift) | ADFreezeMode);
+  0087 58           [1]     LSLB  
+  0088 58           [1]     LSLB  
+  0089 58           [1]     LSLB  
+  008a ca02         [1]     ORAB  #2
+  008c 5b00         [2]     STAB  _ATDCTL23:1
+  126:      /* set up for 10 bit mode with #defined sample times & ADClock divisor */
+  127:          ATDCTL4 = (ADSampTime << ADSampShift) | ADClockDivBits;
+  008e c605         [1]     LDAB  #5
+  0090 5b00         [2]     STAB  _ATDCTL45
+  128:      /* set up for right justified unsigned data, continuous conversions */
+  129:          ATDCTL5 = _S12_DJM | _S12_SCAN | _S12_MULT | FirstADPin ;
+  0092 b60000       [3]     LDAA  FirstADPin
+  0095 8ab0         [1]     ORAA  #176
+  0097 5a00         [2]     STAA  _ATDCTL45:1
+  130:      }
+  131:  
+  132:      /* the '9S12C32 Device User Guide says to program ATDDIEN for all bits
+  133:         that will be 'standard I/O' It doesn't make sense to me to program
+  134:         the input buffer for output pins, but that's what I'll do, 'cause
+  135:         they said to... */
+  136:      ATDDIEN = ( InputPins | OutputPins);
+  0099 e686         [3]     LDAB  6,SP
+  009b ea85         [3]     ORAB  5,SP
+  009d 5b00         [2]     STAB  _ATDDIEN
+  137:      /* set the DDR for any output pins */
+  138:      DDRAD = OutputPins ;
+  009f e685         [3]     LDAB  5,SP
+  00a1 7b0000       [3]     STAB  _DDRAD
+  139:  
+  140:     return ADS12_OK;
+  00a4 c601         [1]     LDAB  #1
+  00a6 87           [1]     CLRA  
+  141:  }
+  00a7 1b87         [2]     LEAS  7,SP
+  00a9 3d           [5]     RTS   
+  142:  
+  143:  
+  144:  /****************************************************************************
+  145:   Function
+  146:           ADS12_ReadADPin
+  147:  
+  148:   Parameters
+  149:           char PinNumber   the Port AD pin number to read the analog value from
+  150:  
+  151:   Returns
+  152:           the result (10 bits right justified) if the pin number is legal,
+  153:           -1 otherwise.
+  154:  
+  155:   Description
+  156:           reads and returns a/d results from the appropriate registers.
+  157:  
+  158:   Notes
+  159:           None.
+  160:  
+  161:   Author
+  162:           J. Edward Carryer, 06/22/04 22:09
+  163:  ****************************************************************************/
+  164:  short ADS12_ReadADPin( unsigned char pinNumber)
+  165:  {
+*** EVALUATION ***
+
+Function: ADS12_ReadADPin
+Source  : U:\_Samples\ADS12\ADS12.C
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\ADS12.C.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 6bad         [2]     STAB  3,-SP
+  0002 3b           [2]     PSHD  
+  166:      volatile unsigned int *pADResult = &ATDDR0;
+  0003 cc0000       [2]     LDD   #_ATDDR0
+  0006 6c83         [2]     STD   3,SP
+  167:  
+  168:      if ((pinNumber >= BadADNum) ||
+  0008 e682         [3]     LDAB  2,SP
+  000a c108         [1]     CMPB  #8
+  000c 241b         [3/1]   BCC   *+29 ;abs = 0029
+  169:          (pinNumber > (FirstADPin + NumADChannels)) ||
+  000e 87           [1]     CLRA  
+  000f 6c80         [2]     STD   0,SP
+  0011 f60000       [3]     LDAB  FirstADPin
+  0014 b745         [1]     TFR   D,X
+  0016 f60000       [3]     LDAB  NumADChannels
+  0019 19e6         [2]     LEAY  D,X
+  001b 35           [2]     PSHY  
+  001c ec82         [3]     LDD   2,SP
+  001e acb1         [3]     CPD   2,SP+
+  0020 2e07         [3/1]   BGT   *+9 ;abs = 0029
+  170:          (pinNumber < FirstADPin))
+  0022 f60000       [3]     LDAB  FirstADPin
+  0025 e182         [3]     CMPB  2,SP
+  0027 2305         [3/1]   BLS   *+7 ;abs = 002e
+  171:          return (-1);
+  0029 ccffff       [2]     LDD   #65535
+  002c 200c         [3]     BRA   *+14 ;abs = 003a
+  172:      else
+  173:          return (*(pADResult + (pinNumber-FirstADPin)));
+  002e 34           [2]     PSHX  
+  002f ec82         [3]     LDD   2,SP
+  0031 a3b1         [3]     SUBD  2,SP+
+  0033 59           [1]     LSLD  
+  0034 e383         [3]     ADDD  3,SP
+  0036 b745         [1]     TFR   D,X
+  0038 ec00         [3]     LDD   0,X
+  174:  }
+  003a 1b85         [2]     LEAS  5,SP
+  003c 3d           [5]     RTS   
+  175:  
+  176:  /*------------------------------- Footnotes -------------------------------*/
+  177:  #ifdef TEST
+  178:  #include <stdio.h>
+  179:  #include <timers12.h>
+  180:  
+  181:  void main(void)
+  182:  {
+  183:      unsigned char OutValues = 0;
+  184:  
+  185:      puts("Starting Port A/D library test \r\n");
+  186:      puts("Bit 0-3 are Ana, bits 4&5 are digital in, bits 6&7 digital out\r\n");
+  187:  
+  188:      if (ADS12_ReadADPin(0) >= 0 )
+  189:          puts("Read before init succeeded, this is a problem\r\n");
+  190:      else
+  191:          puts("Read before init failed, as it should\r\n");
+  192:  
+  193:      if (ADS12_Init("AAIIAAAA") == ADS12_OK)
+  194:          puts("Init in 2 analog blocks succeeded, this is a problem\r\n");
+  195:      else
+  196:          puts("Init in 2 analog blocks failed, as it should\r\n");
+  197:  
+  198:      if (ADS12_Init("OOIIAAAAA") == ADS12_OK)
+  199:          puts("Init with too many pins succeeded, this is a problem\r\n");
+  200:      else
+  201:          puts("Init with too many pins failed, as it should\r\n");
+  202:  
+  203:      if (ADS12_Init("OOIIAAAi") == ADS12_OK)
+  204:          puts("Init with bad pin mode succeeded, this is a problem\r\n");
+  205:      else
+  206:          puts("Init with bad pin mode failed, as it should\r\n");
+  207:  
+  208:      if (ADS12_Init("OOIIAAAA") == ADS12_OK)
+  209:          puts("Init with good mode succeeded, as it should\r\n");
+  210:      else
+  211:          puts("Init with good mode failed, this is a problem\r\n");
+  212:  
+  213:      TMRS12_Init(TMRS12_RATE_8MS);
+  214:      while (1)
+  215:      {
+  216:          /* cycle through the 4 values on the output pins*/
+  217:          PTAD = (OutValues %4)<<6;
+  218:          printf(" Ch0 = %d, Ch1 = %d, Ch2 = %d, Ch3 = %d, Input = %x, Output = %x \r",
+  219:                   ADS12_ReadADPin(0), ADS12_ReadADPin(1), ADS12_ReadADPin(2),
+  220:                   ADS12_ReadADPin(3), PTIAD & (BIT4HI | BIT5HI),
+  221:                   PTAD & (BIT6HI | BIT7HI) );
+  222:          OutValues++;
+  223:          TMRS12_InitTimer(0, 61); /* 0.5s w/ 8.19mS interval */
+  224:          while(TMRS12_IsTimerExpired(0) != 1)
+  225:              ;
+  226:      }
+  227:  }
+  228:  #endif /* TEST */
+  229:  /*------------------------------ End of file ------------------------------*/
+  230:  

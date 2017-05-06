@@ -1,0 +1,517 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //#define TEST
+    2:  /****************************************************************************
+    3:   Module
+    4:       EF_Timers.c
+    5:  
+    6:   Description
+    7:       This is a module implementing  8 16 bit timers all using the RTI
+    8:       timebase
+    9:  
+   10:   Notes
+   11:       Everything is done in terms of RTI Ticks, which can change from
+   12:       application to application.
+   13:  
+   14:   History
+   15:   When           Who     What/Why
+   16:   -------------- ---     --------
+   17:   10/21/11 18:26 jec      begin conversion to work with the new Event Framework
+   18:   09/01/05 13:16 jec      converted the return types and parameters to use the
+   19:                           enumerated constants from the new header.
+   20:   08/31/05 10:23 jec      converted several return value tests in the test harness
+   21:                           to use symbolic values.
+   22:   06/15/04 09:56 jec      converted all external prefixes to TMRS12 to be sure
+   23:                           that we don't have any conflicts with the old libs
+   24:   05/28/04 13:53 jec      converted for 9S12C32 processor
+   25:   12/11/02 14:53 dos      converted for ICC11V6, unadorned char needs to be
+   26:                           called out as signed char, default is now unsigned
+   27:                           for a plain char.
+   28:   11/24/99 14:45 rmo		 updated to compile under ICC11v5.
+   29:   02/24/97 17:13 jec      added new function TMR_SetTimer. This will allow one
+   30:   			             function to set up the time, while another function
+   31:              			 actually initiates the timing.
+   32:   02/24/97 13:34 jec      Began Coding
+   33:  ****************************************************************************/
+   34:  
+   35:  /*----------------------------- Include Files -----------------------------*/
+   36:  #include <hidef.h>         /* common defines and macros */
+   37:  #include <mc9s12c32.h>     /* derivative information */
+   38:  #include <S12C32bits.h>    /* bit definitions  */
+   39:  #include <bitdefs.h>
+   40:  #include "EF_Timers.h"
+   41:  #include "EF_General.h"
+   42:  #include "EF_Events.h"
+   43:  #include "EF_Framework.h"
+   44:  /*--------------------------- External Variables --------------------------*/
+   45:  
+   46:  /*----------------------------- Module Defines ----------------------------*/
+   47:  #define BITS_PER_BYTE 8
+   48:  
+   49:  /*------------------------------ Module Types -----------------------------*/
+   50:  
+   51:  /*
+   52:     the size of Tflag sets the number of timers, char = 8, int =16 ...)
+   53:     to add more timers, you will need to change the data type and modify
+   54:     the initializaiton of TMR_TimerArray and TMR_MaskArray
+   55:  */
+   56:  
+   57:  typedef unsigned char Tflag_t;
+   58:  
+   59:  typedef unsigned int Timer_t;
+   60:  
+   61:  
+   62:  /*---------------------------- Module Functions ---------------------------*/
+   63:  void EF_Timer_RTI_Resp(void);
+   64:  
+   65:  /*---------------------------- Module Variables ---------------------------*/
+   66:  static Timer_t TMR_TimerArray[sizeof(Tflag_t)*BITS_PER_BYTE]=
+   67:                                              { 0x0,
+   68:                                                0x0,
+   69:                                                0x0,
+   70:                                                0x0,
+   71:                                                0x0,
+   72:                                                0x0,
+   73:                                                0x0,
+   74:                                                0x0 };
+   75:  
+   76:  // make this one const to get it put into flash, since it will never change
+   77:  static Tflag_t const TMR_MaskArray[sizeof(Tflag_t)*BITS_PER_BYTE]=
+   78:                                              { BIT0HI,
+   79:                                                BIT1HI,
+   80:                                                BIT2HI,
+   81:                                                BIT3HI,
+   82:                                                BIT4HI,
+   83:                                                BIT5HI,
+   84:                                                BIT6HI,
+   85:                                                BIT7HI };
+   86:  
+   87:  static Tflag_t TMR_ActiveFlags;
+   88:  static unsigned int time;  /* this is used by the default RTI routine */
+   89:  
+   90:  /*------------------------------ Module Code ------------------------------*/
+   91:  /****************************************************************************
+   92:   Function
+   93:       EF_Timer_Init
+   94:   Parameters
+   95:       unsigned char Rate set to one of the TMR_RATE_XX values to set the
+   96:       RTI rate
+   97:   Returns
+   98:       None.
+   99:   Description
+  100:       Initializes the timer module by setting up the RTI with the requested
+  101:      rate
+  102:   Notes
+  103:       None.
+  104:   Author
+  105:       J. Edward Carryer, 02/24/97 14:23
+  106:  ****************************************************************************/
+  107:  void EF_Timer_Init(TimerRate_t Rate)
+  108:  {
+*** EVALUATION ***
+
+Function: EF_Timer_Init
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  109:     RTICTL = (unsigned char)Rate;     /* set RTI Rate */
+  0001 e681         [3]     LDAB  1,SP
+  0003 5b00         [2]     STAB  _RTICTL
+  110:     CRGFLG = _S12_RTIF;              /* clear any pending int */
+  0005 c680         [1]     LDAB  #128
+  0007 5b00         [2]     STAB  _CRGFLG
+  111:     CRGINT |= _S12_RTIE;             /* enable the RTI int */
+  0009 4c0080       [4]     BSET  _CRGINT,#128
+  112:     EnableInterrupts;                /* make sure that interrupts are enabled*/
+  000c 10ef         [1]     CLI   
+  113:  }
+  000e 3a           [3]     PULD  
+  000f 3d           [5]     RTS   
+  114:  
+  115:  /****************************************************************************
+  116:   Function
+  117:       EF_Timer_SetTimer
+  118:   Parameters
+  119:       unsigned char Num, the number of the timer to set.
+  120:       unsigned int NewTime, the new time to set on that timer
+  121:   Returns
+  122:       EF_Timer_ERR if requested timer does not exist
+  123:       EF_Timer_OK  otherwise
+  124:   Description
+  125:       sets the time for a timer, but does not make it active.
+  126:   Notes
+  127:       None.
+  128:   Author
+  129:       J. Edward Carryer, 02/24/97 17:11
+  130:  ****************************************************************************/
+  131:  EF_TimerReturn_t EF_Timer_SetTimer(unsigned char Num, unsigned int NewTime)
+  132:  {
+*** EVALUATION ***
+
+Function: EF_Timer_SetTimer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  133:     if( Num >= ARRAY_SIZE(TMR_TimerArray) )
+  0001 e684         [3]     LDAB  4,SP
+  0003 c108         [1]     CMPB  #8
+  0005 2505         [3/1]   BCS   *+7 ;abs = 000c
+  134:        return EF_Timer_ERR;  /* tried to set a timer that doesn't exist */
+  0007 ccffff       [2]     LDD   #65535
+  000a 200c         [3]     BRA   *+14 ;abs = 0018
+  135:     TMR_TimerArray[Num] = NewTime;
+  000c 87           [1]     CLRA  
+  000d 59           [1]     LSLD  
+  000e ee80         [3]     LDX   0,SP
+  0010 b746         [1]     TFR   D,Y
+  0012 6eea0000     [3]     STX   TMR_TimerArray,Y
+  136:     return EF_Timer_OK;
+  0016 c7           [1]     CLRB  
+  0017 87           [1]     CLRA  
+  137:  }
+  0018 30           [3]     PULX  
+  0019 3d           [5]     RTS   
+  138:  
+  139:  /****************************************************************************
+  140:   Function
+  141:       EF_Timer_StartTimer
+  142:   Parameters
+  143:       unsigned char Num the number of the timer to start
+  144:   Returns
+  145:       EF_Timer_ERR for error EF_Timer_OK for success
+  146:   Description
+  147:       simply sets the active flag in TMR_ActiveFlags to (re)start a
+  148:       stopped timer.
+  149:   Notes
+  150:       None.
+  151:   Author
+  152:       J. Edward Carryer, 02/24/97 14:45
+  153:  ****************************************************************************/
+  154:  EF_TimerReturn_t EF_Timer_StartTimer(unsigned char Num)
+  155:  {
+*** EVALUATION ***
+
+Function: EF_Timer_StartTimer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  156:     if( Num >= ARRAY_SIZE(TMR_TimerArray) )
+  0000 c108         [1]     CMPB  #8
+  0002 2504         [3/1]   BCS   *+6 ;abs = 0008
+  157:        return EF_Timer_ERR;  /* tried to set a timer that doesn't exist */
+  0004 ccffff       [2]     LDD   #65535
+  0007 3d           [5]     RTS   
+  158:     TMR_ActiveFlags |= TMR_MaskArray[Num]; /* set timer as active */
+  0008 b60000       [3]     LDAA  TMR_ActiveFlags
+  000b ce0000       [2]     LDX   #TMR_MaskArray
+  000e aae5         [3]     ORAA  B,X
+  0010 7a0000       [3]     STAA  TMR_ActiveFlags
+  159:     return EF_Timer_OK;
+  0013 c7           [1]     CLRB  
+  0014 87           [1]     CLRA  
+  160:  }
+  0015 3d           [5]     RTS   
+  161:  
+  162:  /****************************************************************************
+  163:   Function
+  164:       EF_Timer_StopTimer
+  165:   Parameters
+  166:       unsigned char Num the number of the timer to stop.
+  167:   Returns
+  168:       EF_Timer_ERR for error (timer doesn't exist) EF_Timer_OK for success.
+  169:   Description
+  170:       simply clears the bit in TMR_ActiveFlags associated with this
+  171:       timer. This will cause it to stop counting.
+  172:   Notes
+  173:       None.
+  174:   Author
+  175:       J. Edward Carryer, 02/24/97 14:48
+  176:  ****************************************************************************/
+  177:  EF_TimerReturn_t EF_Timer_StopTimer(unsigned char Num)
+  178:  {
+*** EVALUATION ***
+
+Function: EF_Timer_StopTimer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  179:     if( Num >= ARRAY_SIZE(TMR_TimerArray) )
+  0000 c108         [1]     CMPB  #8
+  0002 2504         [3/1]   BCS   *+6 ;abs = 0008
+  180:        return EF_Timer_ERR;  /* tried to set a timer that doesn't exist */
+  0004 ccffff       [2]     LDD   #65535
+  0007 3d           [5]     RTS   
+  181:     TMR_ActiveFlags &= ~(TMR_MaskArray[Num]); /* set timer as inactive */
+  0008 ce0000       [2]     LDX   #TMR_MaskArray
+  000b a6e5         [3]     LDAA  B,X
+  000d 41           [1]     COMA  
+  000e b40000       [3]     ANDA  TMR_ActiveFlags
+  0011 7a0000       [3]     STAA  TMR_ActiveFlags
+  182:     return EF_Timer_OK;
+  0014 c7           [1]     CLRB  
+  0015 87           [1]     CLRA  
+  183:  }
+  0016 3d           [5]     RTS   
+  184:  
+  185:  /****************************************************************************
+  186:   Function
+  187:       EF_Timer_InitTimer
+  188:   Parameters
+  189:       unsigned char Num, the number of the timer to start
+  190:       unsigned int NewTime, the number of ticks to be counted
+  191:   Returns
+  192:       EF_Timer_ERR if the requested timer does not exist, EF_Timer_OK otherwise.
+  193:   Description
+  194:       sets the NewTime into the chosen timer and sets the timer actice to 
+  195:       begin counting.
+  196:   Notes
+  197:       None.
+  198:   Author
+  199:       J. Edward Carryer, 02/24/97 14:51
+  200:  ****************************************************************************/
+  201:  EF_TimerReturn_t EF_Timer_InitTimer(unsigned char Num, unsigned int NewTime)
+  202:  {
+*** EVALUATION ***
+
+Function: EF_Timer_InitTimer
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  203:     if( Num >= ARRAY_SIZE(TMR_TimerArray) )
+  0001 e684         [3]     LDAB  4,SP
+  0003 c108         [1]     CMPB  #8
+  0005 2505         [3/1]   BCS   *+7 ;abs = 000c
+  204:        return EF_Timer_ERR;  /* tried to set a timer that doesn't exist */
+  0007 ccffff       [2]     LDD   #65535
+  000a 2018         [3]     BRA   *+26 ;abs = 0024
+  205:     TMR_TimerArray[Num] = NewTime;
+  000c 87           [1]     CLRA  
+  000d 3b           [2]     PSHD  
+  000e 59           [1]     LSLD  
+  000f ee82         [3]     LDX   2,SP
+  0011 b746         [1]     TFR   D,Y
+  0013 6eea0000     [3]     STX   TMR_TimerArray,Y
+  206:     TMR_ActiveFlags |= TMR_MaskArray[Num]; /* set timer as active */
+  0017 f60000       [3]     LDAB  TMR_ActiveFlags
+  001a 30           [3]     PULX  
+  001b eae20000     [4]     ORAB  TMR_MaskArray,X
+  001f 7b0000       [3]     STAB  TMR_ActiveFlags
+  207:     return EF_Timer_OK;
+  0022 c7           [1]     CLRB  
+  0023 87           [1]     CLRA  
+  208:  }
+  0024 30           [3]     PULX  
+  0025 3d           [5]     RTS   
+  209:  
+  210:  /****************************************************************************
+  211:   Function
+  212:       EF_Timer_IsTimerActive
+  213:   Parameters
+  214:       unsigned char Num the number of the timer to check
+  215:   Returns
+  216:       EF_Timer_ERR if requested timer is not valid
+  217:       EF_Timer_NOT_ACTIVE if timer is not active
+  218:       EF_Timer_ACTIVE if it is active
+  219:   Description
+  220:       used to determine if a timer is currently counting.
+  221:   Notes
+  222:       None.
+  223:   Author
+  224:       J. Edward Carryer, 02/24/97 14:53
+  225:  ****************************************************************************/
+  226:  EF_TimerReturn_t EF_Timer_IsTimerActive(unsigned char Num)
+  227:  {
+*** EVALUATION ***
+
+Function: EF_Timer_IsTimerActive
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  228:      if( Num >= ARRAY_SIZE(TMR_TimerArray) )
+  0000 c108         [1]     CMPB  #8
+  0002 2504         [3/1]   BCS   *+6 ;abs = 0008
+  229:        return EF_Timer_ERR;  /* tried to set a timer that doesn't exist */
+  0004 ccffff       [2]     LDD   #65535
+  0007 3d           [5]     RTS   
+  230:      else
+  231:        if ((TMR_ActiveFlags & TMR_MaskArray[Num])!= 0)
+  0008 b60000       [3]     LDAA  TMR_ActiveFlags
+  000b ce0000       [2]     LDX   #TMR_MaskArray
+  000e a4e5         [3]     ANDA  B,X
+  0010 2703         [3/1]   BEQ   *+5 ;abs = 0015
+  232:          return EF_Timer_ACTIVE;
+  0012 c601         [1]     LDAB  #1
+  0014 21           [1]     SKIP1 
+  233:        else
+  234:          return EF_Timer_NOT_ACTIVE;
+  0015 c7           [1]     CLRB  
+  0016 87           [1]     CLRA  
+  235:  }
+  0017 3d           [5]     RTS   
+  236:  
+  237:  /****************************************************************************
+  238:   Function
+  239:       GetTime
+  240:   Parameters
+  241:       None.
+  242:   Returns
+  243:       the current value of the module variable 'time'
+  244:   Description
+  245:       Provides the ability to grab a snapshot time as an alternative to using
+  246:        the library timers. Can be used to determine how long between 2 events.
+  247:   Notes
+  248:       this functionality is ancient, though this implementation in the library
+  249:       is new.
+  250:   Author
+  251:       J. Edward Carryer, 06/01/04 08:04
+  252:  ****************************************************************************/
+  253:  unsigned int EF_Timer_GetTime(void)
+  254:  {
+*** EVALUATION ***
+
+Function: EF_Timer_GetTime
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  255:     return (time);
+  0000 fc0000       [3]     LDD   time
+  256:  }
+  0003 3d           [5]     RTS   
+  257:  
+  258:  /****************************************************************************
+  259:   Function
+  260:       EF_Timer_RTI_Resp
+  261:   Parameters
+  262:       None.
+  263:   Returns
+  264:       None.
+  265:   Description
+  266:       This is the new RTI response routine to support the timer module.
+  267:       It will increment time, to maintain the functionality of the
+  268:       GetTime() timer and it will check through the active timers,
+  269:       decrementing each active timers count, if the count goes to 0, it
+  270:       will post an event to the corresponding SM and clear the active flag to
+  271:       prevent further counting.
+  272:   Notes
+  273:       None.
+  274:   Author
+  275:       J. Edward Carryer, 02/24/97 15:06
+  276:  ****************************************************************************/
+  277:  void interrupt 7 EF_Timer_RTI_Resp(void)
+  278:  {
+*** EVALUATION ***
+
+Function: EF_Timer_RTI_Resp
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_Timers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_Timers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b9b         [2]     LEAS  -5,SP
+  279:  unsigned char i;
+  280:  
+  281:     CRGFLG = _S12_RTIF;   /* clear the source of the int */
+  0002 c680         [1]     LDAB  #128
+  0004 5b00         [2]     STAB  _CRGFLG
+  282:     ++time;             /* keep the GetTime() timer running */
+  0006 fe0000       [3]     LDX   time
+  0009 08           [1]     INX   
+  000a 7e0000       [3]     STX   time
+  283:     if (TMR_ActiveFlags != 0) /* if !=0 , then at least 1 timer is active */
+  000d b60000       [3]     LDAA  TMR_ActiveFlags
+  0010 2740         [3/1]   BEQ   *+66 ;abs = 0052
+  284:     {
+  285:        for(i=0; i<(sizeof(Tflag_t)*BITS_PER_BYTE); i++) /* find active ones*/
+  0012 6980         [2]     CLR   0,SP
+  286:        {
+  287:          if ((TMR_ActiveFlags & TMR_MaskArray[i]) != 0) /* if active */
+  0014 e680         [3]     LDAB  0,SP
+  0016 b60000       [3]     LDAA  TMR_ActiveFlags
+  0019 ce0000       [2]     LDX   #TMR_MaskArray
+  001c a4e5         [3]     ANDA  B,X
+  001e 272a         [3/1]   BEQ   *+44 ;abs = 004a
+  288:              if(--TMR_TimerArray[i] == 0) /* decrement, check if timed out */
+  0020 87           [1]     CLRA  
+  0021 59           [1]     LSLD  
+  0022 b745         [1]     TFR   D,X
+  0024 ede20000     [4]     LDY   TMR_TimerArray,X
+  0028 03           [1]     DEY   
+  0029 6de20000     [3]     STY   TMR_TimerArray,X
+  002d 261b         [3/1]   BNE   *+29 ;abs = 004a
+  289:              {
+  290:                  EF_Event NewEvent;
+  291:                  NewEvent.EventType = EF_TIMEOUT;
+  002f ce0003       [2]     LDX   #3
+  0032 6e81         [2]     STX   1,SP
+  292:                  EF_PostToSM(i, NewEvent); /* post event to the right SM*/
+  0034 e680         [3]     LDAB  0,SP
+  0036 37           [2]     PSHB  
+  0037 ec84         [3]     LDD   4,SP
+  0039 160000       [4]     JSR   EF_PostToSM
+  293:                 /* i is the index into the SMDescList array in EF_Framework.c*/
+  294:                  TMR_ActiveFlags &= ~(TMR_MaskArray[i]); /* stop counting */
+  003c ce0000       [2]     LDX   #TMR_MaskArray
+  003f e6a0         [3]     LDAB  1,+SP
+  0041 e6e5         [3]     LDAB  B,X
+  0043 51           [1]     COMB  
+  0044 f40000       [3]     ANDB  TMR_ActiveFlags
+  0047 7b0000       [3]     STAB  TMR_ActiveFlags
+  004a 6280         [3]     INC   0,SP
+  004c e680         [3]     LDAB  0,SP
+  004e c108         [1]     CMPB  #8
+  0050 25c2         [3/1]   BCS   *-60 ;abs = 0014
+  295:              }
+  296:        }
+  297:     }
+  298:  }
+  0052 1b85         [2]     LEAS  5,SP
+  0054 0b           [8]     RTI   
+  299:  /*------------------------------- Footnotes -------------------------------*/
+  300:  #ifdef TEST
+  301:  
+  302:  #include <termio.h>
+  303:  #include <stdio.h>
+  304:  #include <timerS12.h>
+  305:  
+  306:  
+  307:  #define TIME_OUT_DELAY 1221
+  308:  signed char Message[]={0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x0d, 0};
+  309:  
+  310:  void main(void)
+  311:  {
+  312:     int p;
+  313:     puts("\rStarting, should delay for 10 seconds\r");
+  314:     EF_Timer_Init(EF_Timer_RATE_8MS);
+  315:     EF_Timer_InitTimer(0, TIME_OUT_DELAY); /* TIME_OUT_DELAY  = 10s w/ 8.19mS interval */
+  316:     EF_Timer_InitTimer(1, TIME_OUT_DELAY);
+  317:     EF_Timer_InitTimer(2, TIME_OUT_DELAY);
+  318:     EF_Timer_InitTimer(3, TIME_OUT_DELAY);
+  319:     EF_Timer_InitTimer(4, TIME_OUT_DELAY);
+  320:     EF_Timer_InitTimer(5, TIME_OUT_DELAY);
+  321:     EF_Timer_InitTimer(6, TIME_OUT_DELAY);
+  322:     EF_Timer_InitTimer(7, TIME_OUT_DELAY);
+  323:     while(EF_Timer_IsTimerExpired(0) != EF_Timer_EXPIRED)
+  324:        ;
+  325:     puts("Timed Out\r");
+  326:  
+  327:     EF_Timer_InitTimer(7, TIME_OUT_DELAY);
+  328:     for (p=0;p<10000;p++ ); /* kill some time */
+  329:     EF_Timer_StopTimer(7);
+  330:     if (EF_Timer_IsTimerActive(7) != EF_Timer_NOT_ACTIVE)
+  331:        puts("Timer Stop Failed\r");
+  332:     else
+  333:        puts("Timer Stop Succeded, restarting timeout\r");
+  334:     EF_Timer_StartTimer(7);
+  335:     while(EF_Timer_IsTimerExpired(7) != EF_Timer_EXPIRED)
+  336:        ;
+  337:  
+  338:     puts("Timed Out Again\r");
+  339:  
+  340:     DisableInterrupts;
+  341:  }
+  342:  #endif
+  343:  /*------------------------------ End of file ------------------------------*/
+  344:  
+  345:  

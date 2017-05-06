@@ -1,0 +1,300 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /****************************************************************************
+    2:   Module
+    3:       EF_PostList.c
+    4:   Description
+    5:       source file for the module to post events to lists of state
+    6:       machines
+    7:   Notes
+    8:       Users should only modify the contents of the List0x arrays.
+    9:   History
+   10:   When           Who     What/Why
+   11:   -------------- ---     --------
+   12:   10/16/11 12:32 jec      started coding
+   13:  *****************************************************************************/
+   14:  
+   15:  #include "misc.h"
+   16:  #include "EF_General.h"
+   17:  #include "EF_PostList.h"
+   18:  
+   19:  // Include the header files for the state machines. 
+   20:  // This gets you the prototypes for the post functions.
+   21:  
+   22:  #include "DiscoCubesSM.h"
+   23:  
+   24:  // Fill in these arrays with the lists of posting funcitons for the state
+   25:  // machines that will have common events delivered to them.
+   26:  
+   27:  static PostFunc * const List00[] = {PostDiscoCubesSM };
+   28:  static PostFunc * const List01[] = {PostDiscoCubesSM };
+   29:  static PostFunc * const List02[] = {PostDiscoCubesSM };
+   30:  static PostFunc * const List03[] = {PostDiscoCubesSM };
+   31:  static PostFunc * const List04[] = {PostDiscoCubesSM };
+   32:  static PostFunc * const List05[] = {PostDiscoCubesSM };
+   33:  static PostFunc * const List06[] = {PostDiscoCubesSM };
+   34:  static PostFunc * const List07[] = {PostDiscoCubesSM };
+   35:  
+   36:  /****************************************************************************
+   37:   Leave Everything below this line alone!!
+   38:  *****************************************************************************/
+   39:  // Prototypes for private functions
+   40:  static boolean PostToList(  PostFunc *const*FuncList, unsigned char ListSize, EF_Event NewEvent);
+   41:  
+   42:  // Implementation for public functions
+   43:  
+   44:  // Each of these list-specific functions is a wrapper that calls the generic
+   45:  // function to walk through the list, calling the listed posting functions
+   46:  
+   47:  /****************************************************************************
+   48:   Function
+   49:     PostListxx
+   50:   Parameters
+   51:     EF_Event NewEvent : the new event to be passed to each of the state machine
+   52:     posting functions in list xx
+   53:   Returns
+   54:     True if all the post functions succeeded, False if any failed
+   55:   Description
+   56:     Posts NewEvent to all of the state machines listed in the list
+   57:   Notes
+   58:     
+   59:   Author
+   60:     J. Edward Carryer, 10/24/11, 07:48
+   61:  ****************************************************************************/
+   62:  boolean EF_PostList00( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList00
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   63:    return PostToList( List00, ARRAY_SIZE(List00), NewEvent);
+  0002 cc0000       [2]     LDD   #List00
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   64:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   65:  
+   66:  boolean EF_PostList01( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList01
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   67:    return PostToList( List01, ARRAY_SIZE(List01), NewEvent);
+  0002 cc0000       [2]     LDD   #List01
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   68:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   69:  
+   70:  boolean EF_PostList02( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList02
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   71:    return PostToList( List02, ARRAY_SIZE(List02), NewEvent);
+  0002 cc0000       [2]     LDD   #List02
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   72:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   73:  
+   74:  boolean EF_PostList03( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList03
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   75:    return PostToList( List03, ARRAY_SIZE(List03), NewEvent);
+  0002 cc0000       [2]     LDD   #List03
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   76:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   77:  
+   78:  boolean EF_PostList04( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList04
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   79:    return PostToList( List04, ARRAY_SIZE(List04), NewEvent);
+  0002 cc0000       [2]     LDD   #List04
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   80:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   81:  
+   82:  boolean EF_PostList05( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList05
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   83:    return PostToList( List05, ARRAY_SIZE(List05), NewEvent);
+  0002 cc0000       [2]     LDD   #List05
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   84:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   85:  
+   86:  boolean EF_PostList06( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList06
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   87:    return PostToList( List06, ARRAY_SIZE(List06), NewEvent);
+  0002 cc0000       [2]     LDD   #List06
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   88:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   89:  
+   90:  boolean EF_PostList07( EF_Event NewEvent) {
+*** EVALUATION ***
+
+Function: EF_PostList07
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 3b           [2]     PSHD  
+  0001 34           [2]     PSHX  
+   91:    return PostToList( List07, ARRAY_SIZE(List07), NewEvent);
+  0002 cc0000       [2]     LDD   #List07
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 37           [2]     PSHB  
+  0009 ec85         [3]     LDD   5,SP
+  000b ee83         [3]     LDX   3,SP
+  000d 160000       [4]     JSR   PostToList
+  0010 1b83         [2]     LEAS  3,SP
+   92:  }
+  0012 1b84         [2]     LEAS  4,SP
+  0014 3d           [5]     RTS   
+   93:  
+   94:  // Implementations for private functions
+   95:  /****************************************************************************
+   96:   Function
+   97:     PostToList
+   98:   Parameters
+   99:     PostFunc *const*List : pointer to the list of posting functions
+  100:     unsigned char ListSize : number of elements in the list array 
+  101:     EF_Event NewEvent : the new event to be passed to each of the state machine
+  102:     posting functions in the list
+  103:   Returns
+  104:     True if all the post functions succeeded, False if any failed
+  105:   Description
+  106:     Posts NewEvent to all of the state machines listed in the list
+  107:   Notes
+  108:     
+  109:   Author
+  110:     J. Edward Carryer, 10/24/11, 07:52
+  111:  ****************************************************************************/
+  112:  static boolean PostToList( PostFunc *const*List, unsigned char ListSize, EF_Event NewEvent){
+*** EVALUATION ***
+
+Function: PostToList
+Source  : \\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources\EF_PostList.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EF_PostList.c.o" -WmsgSd1420
+
+  0000 6cad         [2]     STD   3,-SP
+  0002 34           [2]     PSHX  
+  113:    unsigned char i;
+  114:    // loop through the list executing the post functions
+  115:    for ( i=0; i< ListSize; i++) {
+  0003 6984         [2]     CLR   4,SP
+  0005 2013         [3]     BRA   *+21 ;abs = 001a
+  116:      if ( List[i](NewEvent) != True )
+  0007 ee80         [3]     LDX   0,SP
+  0009 87           [1]     CLRA  
+  000a 59           [1]     LSLD  
+  000b e388         [3]     ADDD  8,SP
+  000d b746         [1]     TFR   D,Y
+  000f ec82         [3]     LDD   2,SP
+  0011 15eb0000     [7]     JSR   [0,Y]
+  0015 042108       [3]     DBNE  B,*+11 ;abs = 0020
+  0018 6284         [3]     INC   4,SP
+  001a e684         [3]     LDAB  4,SP
+  001c e187         [3]     CMPB  7,SP
+  001e 25e7         [3/1]   BCS   *-23 ;abs = 0007
+  117:        break; // this is a failed post
+  118:    }
+  119:    if ( i != ListSize ) // if no failures, i = ListSize
+  0020 e684         [3]     LDAB  4,SP
+  0022 e187         [3]     CMPB  7,SP
+  0024 2702         [3/1]   BEQ   *+4 ;abs = 0028
+  120:      return (False);
+  0026 c7           [1]     CLRB  
+  0027 8f           [2]     SKIP2 
+  121:    else
+  122:      return(True);
+  0028 c601         [1]     LDAB  #1
+  123:  }
+  002a 1b85         [2]     LEAS  5,SP
+  002c 3d           [5]     RTS   

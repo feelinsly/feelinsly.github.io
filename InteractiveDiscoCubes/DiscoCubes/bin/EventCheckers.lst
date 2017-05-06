@@ -1,0 +1,500 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:   // Event Checking functions for use in testing the CheckUserEvents 
+    2:  // functionality
+    3:  
+    4:  #include <ME218_C32.h>
+    5:  #include "EF_General.h"
+    6:  #include "EF_Events.h"
+    7:  #include "EF_PostList.h"
+    8:  #include "EF_Timers.h"
+    9:  #include "EventCheckers.h"
+   10:  #include <stdio.h>
+   11:  
+   12:  
+   13:  // in a real application, this would be an include for all of the state
+   14:  // machine functions
+   15:  #include "DiscoCubesSM.h"
+   16:  
+   17:  
+   18:  #define DEBOUNCE_TIME 30
+   19:  #define NO_OF_CUBES 5
+   20:  
+   21:  
+   22:  /*********************************************************
+   23:  EventChecker to check
+   24:  **********************************************************/
+   25:  boolean Check4ButtonPushed(void); //Post event: BUTTON_PUSHED
+   26:  boolean Check4IRUpLimitSwitch(void);//Post event: IR_UP_LIMIT_SWITCH
+   27:  boolean Check4IRDownLimitSwitch(void);//Post event: IR_DOWN_LIMIT_SWITCH
+   28:  boolean Check4CubeCorrect(void);//Post event: CUBE_CORRECT, CUBE_INCORRECT
+   29:  void PulseCLK(void);
+   30:  
+   31:  //Checks whether the start button has been pressed.
+   32:  boolean Check4ButtonPushed(void)
+   33:  { 
+*** EVALUATION ***
+
+Function: Check4ButtonPushed
+Source  : U:\xiaog\My Documents\DiscoCubes\sources\EventCheckers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EventCheckers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1b99         [2]     LEAS  -7,SP
+   34:     static char CurrentButtonState;
+   35:     static char LastButtonState = 0x0;
+   36:     uint16_t TimeOfCurrentSample;
+   37:  	boolean ReturnVal;
+   38:  	EF_Event new_event;
+   39:     static uint16_t TimeOfLastSample = 0; 
+   40:     
+   41:     ReturnVal = False;
+  0002 6986         [2]     CLR   6,SP
+   42:  	CurrentButtonState = PTIAD & BIT2HI;
+  0004 f60000       [3]     LDAB  _PTIAD
+  0007 c404         [1]     ANDB  #4
+  0009 7b0000       [3]     STAB  CurrentButtonState
+   43:  	//printf("currentbuttonstate is %d",CurrentButtonState);
+   44:  	TimeOfCurrentSample = EF_Timer_GetTime();
+  000c 160000       [4]     JSR   EF_Timer_GetTime
+  000f 6c84         [2]     STD   4,SP
+   45:  
+   46:  	if((TimeOfCurrentSample - TimeOfLastSample) > DEBOUNCE_TIME) //If more than the debounce interval has elapsed since the last sampling 
+  0011 b30000       [3]     SUBD  TimeOfLastSample
+  0014 8c001e       [2]     CPD   #30
+  0017 2328         [3/1]   BLS   *+42 ;abs = 0041
+   47:  	{ 
+   48:  		if(CurrentButtonState != LastButtonState) //If the current button state is different from the LastButtonState 
+  0019 f60000       [3]     LDAB  CurrentButtonState
+  001c f10000       [3]     CMPB  LastButtonState
+  001f 2720         [3/1]   BEQ   *+34 ;abs = 0041
+   49:  		{  
+   50:  			if(CurrentButtonState > 0)  //If the current button state is DOWN 
+  0021 d7           [1]     TSTB  
+  0022 2f12         [3/1]   BLE   *+20 ;abs = 0036
+   51:  			{
+   52:  			    new_event.EventType = BUTTON_PUSHED;
+  0024 c604         [1]     LDAB  #4
+  0026 87           [1]     CLRA  
+  0027 6c80         [2]     STD   0,SP
+   53:  		       new_event.EventParam = TimeOfCurrentSample;
+  0029 ec84         [3]     LDD   4,SP
+  002b 6c82         [2]     STD   2,SP
+   54:  		       EF_PostList00(new_event);//Post Event
+  002d ee80         [3]     LDX   0,SP
+  002f 160000       [4]     JSR   EF_PostList00
+   55:  		       ReturnVal = True;
+  0032 c601         [1]     LDAB  #1
+  0034 6b86         [2]     STAB  6,SP
+   56:  			}
+   57:  			LastButtonState = CurrentButtonState;  //Set LastButtonState to the CurrentButtonState 
+  0036 f60000       [3]     LDAB  CurrentButtonState
+  0039 7b0000       [3]     STAB  LastButtonState
+   58:  			TimeOfLastSample = TimeOfCurrentSample;  
+  003c ec84         [3]     LDD   4,SP
+  003e 7c0000       [3]     STD   TimeOfLastSample
+   59:  		}
+   60:  	}		
+   61:  	return ReturnVal; 
+  0041 e686         [3]     LDAB  6,SP
+   62:  }
+  0043 1b87         [2]     LEAS  7,SP
+  0045 3d           [5]     RTS   
+   63:  
+   64:  //Checks whether the lower limit of motion has been exceeded.
+   65:  boolean Check4IRDownLimitSwitch(void)//Post event: IR_DOWN_LIMIT_SWITCH
+   66:  {
+*** EVALUATION ***
+
+Function: Check4IRDownLimitSwitch
+Source  : U:\xiaog\My Documents\DiscoCubes\sources\EventCheckers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EventCheckers.c.o" -WmsgSd1106 -WmsgSd1420
+
+   67:    unsigned char CurrentIRDownState;
+   68:    EF_Event new_event;
+   69:    boolean ReturnVal;
+   70:    static unsigned char LastIRDownState;
+   71:    //puts("checkingIRdown");
+   72:    
+   73:    ReturnVal = False;
+  0000 69aa         [2]     CLR   6,-SP
+   74:    CurrentIRDownState = PTT & BIT6HI;
+  0002 f60000       [3]     LDAB  _PTT
+  0005 c440         [1]     ANDB  #64
+  0007 6b85         [2]     STAB  5,SP
+   75:    
+   76:    if (CurrentIRDownState != LastIRDownState)
+  0009 f10000       [3]     CMPB  LastIRDownState
+  000c 2718         [3/1]   BEQ   *+26 ;abs = 0026
+   77:    {
+   78:     if (CurrentIRDownState == BIT6HI)
+  000e c140         [1]     CMPB  #64
+  0010 2614         [3/1]   BNE   *+22 ;abs = 0026
+   79:     {  puts("ir down event");
+  0012 cc0000       [2]     LDD   #"ir down event"
+  0015 160000       [4]     JSR   puts
+   80:        new_event.EventType = IR_DOWN_LIMIT_SWITCH;
+  0018 ce0006       [2]     LDX   #6
+  001b 6e81         [2]     STX   1,SP
+   81:        EF_PostList00(new_event);
+  001d ec83         [3]     LDD   3,SP
+  001f 160000       [4]     JSR   EF_PostList00
+   82:        ReturnVal = True;
+  0022 c601         [1]     LDAB  #1
+  0024 6b80         [2]     STAB  0,SP
+   83:     }
+   84:    }
+   85:    LastIRDownState = CurrentIRDownState;
+  0026 e685         [3]     LDAB  5,SP
+  0028 7b0000       [3]     STAB  LastIRDownState
+   86:    return ReturnVal;
+  002b e680         [3]     LDAB  0,SP
+   87:  }
+  002d 1b86         [2]     LEAS  6,SP
+  002f 3d           [5]     RTS   
+   88:  
+   89:  //Checks whether the upper limit of motion has been exceeded.
+   90:  boolean Check4IRUpLimitSwitch(void)//Post event: IR_UP_LIMIT_SWITCH
+   91:  {
+*** EVALUATION ***
+
+Function: Check4IRUpLimitSwitch
+Source  : U:\xiaog\My Documents\DiscoCubes\sources\EventCheckers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EventCheckers.c.o" -WmsgSd1106 -WmsgSd1420
+
+   92:    unsigned char CurrentIRUpState;
+   93:    EF_Event new_event;
+   94:    boolean ReturnVal;
+   95:    static unsigned char LastIRUpState;
+   96:    //puts("checkingIRup");
+   97:    
+   98:    ReturnVal = False;
+  0000 69aa         [2]     CLR   6,-SP
+   99:    CurrentIRUpState = PTT & BIT7HI;
+  0002 f60000       [3]     LDAB  _PTT
+  0005 c480         [1]     ANDB  #128
+  0007 6b85         [2]     STAB  5,SP
+  100:    
+  101:    if (CurrentIRUpState != LastIRUpState)
+  0009 f10000       [3]     CMPB  LastIRUpState
+  000c 2712         [3/1]   BEQ   *+20 ;abs = 0020
+  102:    {
+  103:     if (CurrentIRUpState == BIT7HI)
+  000e c180         [1]     CMPB  #128
+  0010 260e         [3/1]   BNE   *+16 ;abs = 0020
+  104:     {  //puts("ir up event");
+  105:        new_event.EventType = IR_UP_LIMIT_SWITCH;
+  0012 ce0005       [2]     LDX   #5
+  0015 6e81         [2]     STX   1,SP
+  106:        EF_PostList00(new_event);
+  0017 ec83         [3]     LDD   3,SP
+  0019 160000       [4]     JSR   EF_PostList00
+  107:        ReturnVal = True;
+  001c c601         [1]     LDAB  #1
+  001e 6b80         [2]     STAB  0,SP
+  108:     }
+  109:    }
+  110:    LastIRUpState = CurrentIRUpState;
+  0020 e685         [3]     LDAB  5,SP
+  0022 7b0000       [3]     STAB  LastIRUpState
+  111:    return ReturnVal;
+  0025 e680         [3]     LDAB  0,SP
+  112:  }
+  0027 1b86         [2]     LEAS  6,SP
+  0029 3d           [5]     RTS   
+  113:        
+  114:  /**********************************************************************
+  115:  Magnet Reed Switch and Cube Placement
+  116:  ************************************************************************
+  117:  We'd like all 6 cube sides be able to be triggered
+  118:  	
+  119:  	5 cubes --> 15 LEDs --> 15*2*2 foil contacts
+  120:  	-->  5*2*3 magnets (2 for each color)
+  121:  	--> 5*3 Magnet Reed Switches
+  122:  
+  123:  15 Magnet Reed Switches are connected to two 74HC165s
+  124:  
+  125:  4th pillar -- C1 B1 A1 (in the order of R G B)
+  126:  3rd pillar -- F1 E1 D1
+  127:  2nd pillar -- A2 H1 G1
+  128:  1st pillar -- D2 C2 B2
+  129:  0th pillar -- G2 F2 E2
+  130:  
+  131:  Figure showing positions for magnet reed switch on each pillar cap:
+  132:  _________
+  133:  |   G   |
+  134:  |       |
+  135:  |R      |
+  136:  |_____B_|
+  137:  
+  138:  //example of a computersanwer/usersanswer  [0 2 2 0 1] representing 0 001 100 100 001 010
+  139:  
+  140:        |0|   |1|
+  141:           |2|
+  142:        |3|   |4|  
+  143:  
+  144:  
+  145:  ************************************************************************/
+  146:  
+  147:  boolean Check4CubeCorrect(void)
+  148:  {
+*** EVALUATION ***
+
+Function: Check4CubeCorrect
+Source  : U:\xiaog\My Documents\DiscoCubes\sources\EventCheckers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EventCheckers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  0000 1bf1ef       [2]     LEAS  -17,SP
+  149:    EF_Event new_event; 
+  150:    char *answer;
+  151:    char CurrentReedSwitchState[NO_OF_CUBES];
+  152:    static char LastReedSwitchState[NO_OF_CUBES];
+  153:    char j;
+  154:    char i;
+  155:    uint16_t t;
+  156:    boolean ReturnVal;
+  157:    //puts("checkingcubes");
+  158:    
+  159:    j=0;
+  0003 6987         [2]     CLR   7,SP
+  160:    ReturnVal = False; 
+  161:    t = EF_Timer_GetTime(); 
+  0005 160000       [4]     JSR   EF_Timer_GetTime
+  0008 6c8f         [2]     STD   15,SP
+  162:    answer = GetComputersAnswer();
+  000a 160000       [4]     JSR   GetComputersAnswer
+  000d 6c8d         [2]     STD   13,SP
+  163:    
+  164:    PTAD &= BIT1LO; //now all the data appears on the register
+  000f 1d000002     [4]     BCLR  _PTAD,#2
+  165:    while(EF_Timer_GetTime() == t); //do nothing for 1 ms.
+  0013 160000       [4]     JSR   EF_Timer_GetTime
+  0016 ac8f         [3]     CPD   15,SP
+  0018 27f9         [3/1]   BEQ   *-5 ;abs = 0013
+  166:    PTAD |= BIT1HI; //now we allow the register's new data to be shifted out in series.
+  001a 1c000002     [4]     BSET  _PTAD,#2
+  167:   
+  168:    for (i = 0; i < 15; i++)
+  001e 6982         [2]     CLR   2,SP
+  169:    {
+  170:     if ((PTT&BIT4HI) == BIT4HI)
+  0020 1e00001003   [5]     BRSET _PTT,#16,*+8 ;abs = 0028
+  0025 060000       [3]     JMP   Check4CubeCorrect:0x00db
+  171:     {  
+  172:        //printf("PTT&BIT4HI is: %d \n\r",PTT&BIT4HI);
+  173:        
+  174:        CurrentReedSwitchState[i/3] = i%3;
+  0028 160000       [4]     JSR   Check4CubeCorrect:0x011d
+  002b b704         [1]     SEX   A,D
+  002d 1a88         [2]     LEAX  8,SP
+  002f 19e6         [2]     LEAY  D,X
+  0031 3b           [2]     PSHD  
+  0032 e684         [3]     LDAB  4,SP
+  0034 8603         [1]     LDAA  #3
+  0036 160000       [4]     JSR   _BDIVMODS
+  0039 6b40         [2]     STAB  0,Y
+  175:        
+  176:        //printf("computer answer is %d \n\r", answer[i/3]);
+  177:        if(CurrentReedSwitchState[i/3] != LastReedSwitchState[i/3])
+  003b 31           [3]     PULY  
+  003c e1ea0000     [4]     CMPB  LastReedSwitchState,Y
+  0040 18270095     [4/3]   LBEQ  *+153 ;abs = 00d9
+  178:        {  puts("reed swich state change");
+  0044 cc0000       [2]     LDD   #"reed swich state change"
+  0047 34           [2]     PSHX  
+  0048 160000       [4]     JSR   puts
+  179:           printf("CurrentReedSwitchState is %d \n\r", CurrentReedSwitchState[i/3]);
+  004b e684         [3]     LDAB  4,SP
+  004d 8603         [1]     LDAA  #3
+  004f 160000       [4]     JSR   _BDIVMODS
+  0052 b704         [1]     SEX   A,D
+  0054 6c82         [2]     STD   2,SP
+  0056 e380         [3]     ADDD  0,SP
+  0058 b745         [1]     TFR   D,X
+  005a e600         [3]     LDAB  0,X
+  005c b715         [1]     SEX   B,X
+  005e 34           [2]     PSHX  
+  005f cc0000       [2]     LDD   #"CurrentReedSwitchState is %d \012\015"
+  0062 3b           [2]     PSHD  
+  0063 160000       [4]     JSR   printf
+  0066 1b84         [2]     LEAS  4,SP
+  180:           printf("LastReedSwitchState is %d \n\r", LastReedSwitchState[i/3]);
+  0068 ee82         [3]     LDX   2,SP
+  006a e6e20000     [4]     LDAB  LastReedSwitchState,X
+  006e b716         [1]     SEX   B,Y
+  0070 35           [2]     PSHY  
+  0071 cc0000       [2]     LDD   #"LastReedSwitchState is %d \012\015"
+  0074 3b           [2]     PSHD  
+  0075 160000       [4]     JSR   printf
+  0078 1b84         [2]     LEAS  4,SP
+  181:           printf("CubeNumber: %d", i/3);
+  007a ec82         [3]     LDD   2,SP
+  007c 3b           [2]     PSHD  
+  007d ce0000       [2]     LDX   #"CubeNumber: %d"
+  0080 34           [2]     PSHX  
+  0081 160000       [4]     JSR   printf
+  0084 1b84         [2]     LEAS  4,SP
+  182:           if (answer[i/3] == CurrentReedSwitchState[i/3])
+  0086 ec82         [3]     LDD   2,SP
+  0088 e38f         [3]     ADDD  15,SP
+  008a b745         [1]     TFR   D,X
+  008c ec80         [3]     LDD   0,SP
+  008e e382         [3]     ADDD  2,SP
+  0090 b746         [1]     TFR   D,Y
+  0092 e600         [3]     LDAB  0,X
+  0094 e140         [3]     CMPB  0,Y
+  0096 1b82         [2]     LEAS  2,SP
+  0098 2615         [3/1]   BNE   *+23 ;abs = 00af
+  183:           { 
+  184:              puts("cube correct");
+  009a cc0000       [2]     LDD   #"cube correct"
+  009d 160000       [4]     JSR   puts
+  185:              new_event.EventType = CUBE_CORRECT;
+  00a0 c608         [1]     LDAB  #8
+  00a2 87           [1]     CLRA  
+  00a3 6c83         [2]     STD   3,SP
+  186:              new_event.EventParam = i/3; //says which cube it is.
+  00a5 ee80         [3]     LDX   0,SP
+  00a7 6e85         [2]     STX   5,SP
+  187:              printf("Cube is right #: %d \n\r", i/3);
+  00a9 34           [2]     PSHX  
+  00aa ce0000       [2]     LDX   #"Cube is right #: %d \012\015"
+  188:              EF_PostList00(new_event);
+  189:           }else 
+  00ad 2013         [3]     BRA   *+21 ;abs = 00c2
+  190:           {  
+  191:              puts("cube incorrect");
+  00af cc0000       [2]     LDD   #"cube incorrect"
+  00b2 160000       [4]     JSR   puts
+  192:              new_event.EventType = CUBE_INCORRECT;
+  00b5 c607         [1]     LDAB  #7
+  00b7 87           [1]     CLRA  
+  00b8 6c83         [2]     STD   3,SP
+  193:              new_event.EventParam = i/3;
+  00ba ee80         [3]     LDX   0,SP
+  00bc 6e85         [2]     STX   5,SP
+  194:              printf("Cube is wrong #: %d \n\r", i/3);
+  00be 34           [2]     PSHX  
+  00bf ce0000       [2]     LDX   #"Cube is wrong #: %d \012\015"
+  00c2 34           [2]     PSHX  
+  00c3 160000       [4]     JSR   printf
+  00c6 1b84         [2]     LEAS  4,SP
+  195:              EF_PostList00(new_event);
+  00c8 ec85         [3]     LDD   5,SP
+  00ca ee83         [3]     LDX   3,SP
+  00cc 160000       [4]     JSR   EF_PostList00
+  196:           }
+  197:        LastReedSwitchState[i/3] = CurrentReedSwitchState[i/3];
+  00cf 074c         [4]     BSR   *+78 ;abs = 011d
+  00d1 0751         [4]     BSR   *+83 ;abs = 0124
+  00d3 e600         [3]     LDAB  0,X
+  00d5 6bea0000     [3]     STAB  LastReedSwitchState,Y
+  198:        }
+  199:     } 
+  00d9 202f         [3]     BRA   *+49 ;abs = 010a
+  200:      //if PTT4 is not HIGH for all 3 bits of a cube 
+  201:     else
+  202:     {  
+  203:        if ((i%3) == 0)//if(((PTT&BIT4HI) == 0))
+  00db 0740         [4]     BSR   *+66 ;abs = 011d
+  00dd 046108       [3]     TBNE  B,*+11 ;abs = 00e8
+  204:        {              //### #1# 2## 2## ##0
+  205:           j = i;      //444 333 222 111 000
+  00e0 e682         [3]     LDAB  2,SP
+  00e2 6b87         [2]     STAB  7,SP
+  206:           j++;        //210 210 210 210 210
+  00e4 6287         [3]     INC   7,SP
+  207:        }else if (j == i)           
+  00e6 2022         [3]     BRA   *+36 ;abs = 010a
+  00e8 a687         [3]     LDAA  7,SP
+  00ea a182         [3]     CMPA  2,SP
+  00ec 261c         [3/1]   BNE   *+30 ;abs = 010a
+  208:        {  
+  209:           if ((i%3) == 1)
+  00ee 042102       [3]     DBNE  B,*+5 ;abs = 00f3
+  210:           {
+  211:              j++;
+  00f1 6287         [3]     INC   7,SP
+  212:           }
+  213:           if ((i%3) == 2)
+  00f3 0728         [4]     BSR   *+42 ;abs = 011d
+  00f5 c102         [1]     CMPB  #2
+  00f7 2611         [3/1]   BNE   *+19 ;abs = 010a
+  214:           {
+  215:  		 	   CurrentReedSwitchState[i/3] = '#';   
+  00f9 e682         [3]     LDAB  2,SP
+  00fb 8603         [1]     LDAA  #3
+  00fd 160000       [4]     JSR   _BDIVMODS
+  0100 0722         [4]     BSR   *+36 ;abs = 0124
+  0102 c623         [1]     LDAB  #35
+  0104 6b00         [2]     STAB  0,X
+  216:  		      LastReedSwitchState[i/3] = CurrentReedSwitchState[i/3];
+  0106 6bea0000     [3]     STAB  LastReedSwitchState,Y
+  217:           }
+  218:        }
+  219:     }
+  220:     ReturnVal = True;
+  221:     PulseCLK(); 
+  010a 160000       [4]     JSR   PulseCLK
+  010d 6282         [3]     INC   2,SP
+  010f c601         [1]     LDAB  #1
+  0111 a682         [3]     LDAA  2,SP
+  0113 810f         [1]     CMPA  #15
+  0115 182dff07     [4/3]   LBLT  *-245 ;abs = 0020
+  222:    }
+  223:    return ReturnVal;
+  224:  }
+  0119 1bf011       [2]     LEAS  17,SP
+  011c 3d           [5]     RTS   
+  011d e684         [3]     LDAB  4,SP
+  011f 8603         [1]     LDAA  #3
+  0121 060000       [3]     JMP   _BDIVMODS
+  0124 b704         [1]     SEX   A,D
+  0126 1a8a         [2]     LEAX  10,SP
+  0128 1ae6         [2]     LEAX  D,X
+  012a b746         [1]     TFR   D,Y
+  012c 3d           [5]     RTS   
+  225:  
+  226:  //Pulses the clock to shift out data to C32.
+  227:  void PulseCLK(void)
+  228:  {
+*** EVALUATION ***
+
+Function: PulseCLK
+Source  : U:\xiaog\My Documents\DiscoCubes\sources\EventCheckers.c
+Options : -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\prm;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\cmd;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Startup Code;\\testarossa\Users$\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\Headers;U:\xiaog\My Documents\DiscoCubes\sources;U:\_Samples\ADS12;U:\_Samples\PWMS12\PWMS12;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Env"TEXTPATH=\\testarossa\Users$\xiaog\My Documents\DiscoCubes\bin" -Lasm=%n.lst -Ms -ObjN="\\testarossa\Users$\xiaog\My Documents\DiscoCubes\DiscoCubes_Data\Monitor\ObjectCode\EventCheckers.c.o" -WmsgSd1106 -WmsgSd1420
+
+  229:     int i;
+  230:     PTM &= BIT5LO;
+  0000 1d000020     [4]     BCLR  _PTM,#32
+  231:     for (i = 0; i < 1; i++) 
+  0004 ce0000       [2]     LDX   #0
+  0007 08           [1]     INX   
+  0008 8e0001       [2]     CPX   #1
+  000b 2dfa         [3/1]   BLT   *-4 ;abs = 0007
+  232:     {
+  233:        volatile int dummy;
+  234:     }
+  235:     
+  236:     PTM |= BIT5HI;
+  000d 1c000020     [4]     BSET  _PTM,#32
+  237:     for (i = 0; i < 1; i++) 
+  0011 ce0000       [2]     LDX   #0
+  0014 08           [1]     INX   
+  0015 8e0001       [2]     CPX   #1
+  0018 2dfa         [3/1]   BLT   *-4 ;abs = 0014
+  238:     {
+  239:        volatile int dummy;
+  240:     }
+  241:     printf("");
+  001a cc0000       [2]     LDD   #""
+  001d 3b           [2]     PSHD  
+  001e 160000       [4]     JSR   printf
+  0021 3a           [3]     PULD  
+  242:     
+  243:     return;
+  244:     
+  245:  }
+  0022 3d           [5]     RTS   
+  246:    
+  247:  
