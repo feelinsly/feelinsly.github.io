@@ -1,0 +1,744 @@
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>Xiao_Portfolio</title>
+
+<meta name="keywords" content="" />
+
+<meta name="description" content="" />
+
+<link href="font2.css" rel="stylesheet" />
+
+<link href="default.css" rel="stylesheet" type="text/css" media="all" />
+
+<link href="fonts.css" rel="stylesheet" type="text/css" media="all" />
+
+<script src="js/jquery.js" type="text/javascript"></script>
+
+<!--[if IE 6]><link href="default_ie6.css" rel="stylesheet" type="text/css" /><![endif]-->
+
+
+
+</head>
+
+
+
+<body>
+
+<div id="header-wrapper">
+
+	<div id="header" class="container">
+
+		<div id="logo">
+
+		  <h1><a href="About.html">Xiao Ge</a></h1>
+
+			<span>Human-Centered, action-driven, X-discipline. </span>
+
+		</div>
+
+		<div id="triangle-up"></div>
+
+	</div>
+
+</div>
+
+<div id="menu-wrapper">
+
+		<div id="menu">
+
+			<ul>
+
+				<li><a href="index.html" accesskey="1" title="Xiao_Home">Home</a></li>
+
+				<li class="current_page_item"><a href="Portfolio.html" class="thispage" accesskey="2" title="Xiao_Portfolio">Portfolio</a></li>
+
+				<!-- <li><a href="https://feelinsly.wordpress.com/" target="_blank"  accesskey="3" title="Xiao_Blog">Blog</a></li> -->
+				<li><a href="Links.html" accesskey="5" title="Xiao_Links">Publication and links</a></li>
+				<li><a href="About.html" accesskey="4" title="Xiao_About">About</a></li>
+
+				
+
+			</ul>
+
+		</div>
+
+</div>
+
+
+
+
+
+	
+
+		
+
+<div id="wrapper">
+
+<div id="featured-wrapper-demo">
+
+			<!----star-wrapper-demo------->
+
+
+
+<div class="wrapper-demo">
+
+				<!-----start-wrapper-dropdown-2---->
+
+					<div id="dd" class="wrapper-dropdown-2" tabindex="1">select category<span><img src="images/menu.png"/></span>
+
+							<ul class="dropdown">
+
+							
+
+									<li><a href="#dtp">"Serious" Projects <span class="iconmeanu"> </span></a></li>
+
+									<li><a href="#scp">"Fun" Projects<span class="iconmeanu stat"> </span></a></li>
+
+									<li><a href="#mep">Sketching and Crafts<span class="iconmeanu msg"> </span></a></li>
+
+									<li><a href="#ofp">Life Experiments<span class="iconmeanu signout"> </span></a></li>
+
+							</ul>
+
+					</div>
+
+			</div>
+
+			<!-----end-wrapper-dropdown-2---->
+
+			<!-----start-script---->
+
+			<script type="text/javascript">
+
+							function DropDown(el) {
+
+								this.dd = el;
+
+								this.initEvents();
+
+							}
+
+							DropDown.prototype = {
+
+								initEvents : function() {
+
+									var obj = this;
+
+				
+
+									obj.dd.on('click', function(event){
+
+										$(this).toggleClass('active');
+
+										event.stopPropagation();
+
+									});	
+
+								}
+
+							}
+
+							$(function() {
+
+				
+
+								var dd = new DropDown( $('#dd') );
+
+				
+
+								$(document).click(function() {
+
+									// all dropdowns
+
+									$('.wrapper-dropdown-2').removeClass('active');
+
+								});
+
+				
+
+							});
+
+			</script>
+
+			<!-----end-script---->
+
+			<!----end-wrapper-demo----->
+
+		
+
+	</div>   
+
+	<div id="featured-wrapper">
+
+	
+
+		<div class="extra2 container">
+
+			<div class="ebox1" id="dtp">
+
+				<div class="hexagon"><span class="icon icon-bar-chart"></span></div>
+
+				<div class="title">
+
+					<h2>"Serious" Projects</h2>
+
+					<span class="byline">big, complex and business-driven</span>
+
+				</div>
+
+				
+
+        <div id="content">       
+
+		
+               <p>
+
+	<span>Study how we form new perceptions and develop nonconformist behaviors. The research topic is especially salient in the context of design innovation. I've been interested to build up a theoretical basis about the underlying mechanisms. This is supposed to be a lifelong inquiry, and now is part of my PhD journey.</span>
+	<img src="images/research_image.001.png" alt="" class="image-full"/>
+	<img src="images/research_image.002.png" alt="" class="image-full"/>
+	<img src="images/research_image.003.png" alt="" class="image-full"/>
+	<img src="images/research_image.004.png" alt="" class="image-full"/>
+                                             
+
+              </p>
+
+
+	<img src="images/seperator.jpg" class="image-centered" />  
+		
+		<p>
+             <span>Designed a medical service system to prevent recurrent diabetic foot ulcers, 2016: <a href="files/BiodesignSpringFinal.pdf" title="Click to view the project final report" target="_blank">Footie</a><br>
+	       </span><img src="images/Footie.png" alt="" class="image-full"/>
+              </p>
+	<img src="images/seperator.jpg" class="image-centered" />
+
+             <p>
+
+	NOTE: All projects in this section were teamwork-based, not done by individual.
+
+             </p>
+
+
+
+              <p>
+
+             <img src="images/innovation trainer.png" alt="" class="image-full"/>
+             
+
+	</p>
+
+
+
+	<p style="text-align:left; margin-left: 150px;">
+
+         
+
+	<b>Projects* at Siemens (2012 - 2014) include innovations around:</b><br>
+
+             - Accurate and affordable urine analysis for small hospitals<br>
+
+             - Interactive building responding to user needs <br>
+
+             - Personalized Brain Stroke Care with augmented decision-making system<br>
+
+             - Enhanced mine security with wireless lifesaver <br>
+
+             - Intelligent traffic management with human as smart sensors<br>
+
+             - Effective operation and maintenance of airport baggage handling by social networking<br>
+
+	 - Boost of innovation with Intellectual Property counseling services<br>
+
+	 - Design of natural while appetizing lighting in fashion shops <br>
+
+	 - Simple and safe gasification system<br>
+
+	 - Market research of the future of Gas Turbine in China<br>
+
+	 - Distributed smart motor system for small and median enterprises<br><br>
+
+
+
+
+
+
+
+             *Proprietary information of the projects at Siemens is not disclosed.
+
+	   
+
+             </p>
+
+	
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+          
+
+              <p>
+
+	<span>Researched on assistive robots, generating trajectories of ASL for ASIMO with voice input by integrating voice recognition software with robot simulator; Improved simulator's user interface with QT software </span><a href="files/CS327_ASL_ASIMO_Presentation.pdf" title="Click to see the presentation of Teach ASIMO ASL" target="_blank"><img src="images/Teach ASIMO ASL.png" alt="" class="image-full"/></a>
+
+                                             
+
+              </p>
+
+	
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+          
+
+             <p>
+
+             <span>Co-designed the CTO communication satellite core structure which satisfied unmet needs of testing engineers and dramatically improved satellite production process, teamed up between Stanford and Universidad Nacional Autonoma de Mexico; Based on <a href="https://web.stanford.edu/group/me310/me310_2014/">Project‐based Engineering Design class</a> and sponsored by Lockheed Martin.</span>    
+<a href="files/LOCKHEEDBROCHUREbothsides.pdf" title="Click to see Lockheed Martain Project Brochure" target="_blank"><img src="images/Open space satellite.png" alt="" class="image-full"/></a> <br>
+
+<span>This is a storytelling video of the project outcome. The insights we got through many iterations of low-resolution prototyping and constant empathy with testing engineers made an impact to our liaison at Lockheed Martin.</span>
+
+                <iframe width="630" height="472.5" src="https://www.youtube.com/embed/7X4CBI29JZg" frameborder="0" allowfullscreen></iframe>
+
+
+                         
+
+              </p>
+
+          
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+              
+
+             <p>
+
+             <span>Researched on the thermal performance of open refrigerated display cabinet, using Computational Fluid Dynamics model simulation; <a href="https://congress.cimne.com/eccomas/cfd2010/papers/01021.pdf">paper published</a> </span> <a href="files/cfd study of open refrigerator.pdf" title="Click to see conference paper about this project" target="_blank"><img src="images/CFD study.png" alt="" class="image-full"/></a>
+
+                                              
+
+              </p>
+
+
+
+             
+
+
+
+
+
+</div>
+
+				<a href="#" class="button">Back to top</a>
+
+			</div>		
+
+
+
+			<div class="ebox2" id="scp">
+
+				<div class="hexagon"><span class="icon icon-lightbulb"></span></div>
+
+				<div class="title">
+
+					<h2>"Fun" Projects</h2>
+
+					<span class="byline">exploratory, and playful</span>
+
+				</div>
+
+            <div id="content">
+	<p>
+
+             <span>Designed a robotic water cooler to enable impromptu interactions among work groups in Summer, 2016: <a href="https://mediax.stanford.edu/page/spd-leifer" title="Click to view coolerbot project detail" target="_blank">Coolerbot</a><br>
+	      The coolerbot project documentation is available <a href="https://mediax.stanford.edu/pdf/leifer_F2016.pdf" title="Click to view the project documentation" target="_blank">here</a> </span><img src="images/coolerbot_project.png" alt="" class="image-full"/>
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+       
+
+	<p>
+
+             <span>This is a very serious project of children education, complex and big. 
+But I put it here in "Fun" Projects to differentiate it from those in the industrial business. 
+In this startup project that I'm working with two other Chinese educators <a href="https://jcu.bjut.edu.cn/bjut_en/dynamic.jsp?articleID=3728" title="Click to view Prof. Liao's profile" target="_blank">Wei LIAO</a>
+ and Xu(Fiona) GAO. In <a href="https://www.originators.com.cn/" title="Click to view the website of Originators" target="_blank">Originators</a>, I am dedicated to design programs and courses for kids, and conduct research on how to improve creative confidence and ability of kids. </span><img src="images/originators1.png" alt="" class="image-full"/>
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+	<p>
+
+             <span>Designed the innovation workspace with color and fun</span><img src="images/environment design.png" alt="" class="image-full"/>
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+	<p>
+
+              <span>Teamed up with two Siemens colleagues to build rubber band-powered RC car in our spare time. Everything was hand-made in this car! </span>
+<img src="images/rubber band powered car.png" alt="" class="image-full"/>
+
+                                              
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+	<p>
+
+              <span>Worked in a team to create happy and healthy eating experiences for new moms; generated unexpected insights and sketched ideas that impressed Chick-fil-A managers</span><a href="files/WRITEUP_MARYAMXIAO.pdf" title="Click to see final documentation of this project" target="_blank"><img src="images/convenient healthy eating for new moms.png" alt="" class="image-full"/></a>
+
+                                              
+
+              </p>
+
+
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+	<p>
+
+              <span>Co-designed a dynamic and interactive game of lights and colors – Disco Tubes: to win the game, users move and flip the color-lighting cubes among different pillars to match the color pattern on display panel before pillars rise to the top. This project was based on <a href="https://design.stanford.edu/spdl/Home/HomeFrame.html"> ME218A Smart Product Design class</a> at Stanford</span>
+	<a href="InteractiveDiscoCubes/index.html" title="Click to see the website of this project" target="_blank"><img src="images/disco tubes me218.png" alt="" class="image-full"/></a>
+
+	<span>This video shows the final resolution of my team's idea about disco tubes, which was intended to be much fancier (e.g. nine pillars rather than five, more agile and smart movement, more swift color-rendering...). Making something under time pressure is different than having a feasible idea. The design skills gained in the project were rewarding, as well as teamwork and project management.</span>
+
+                <iframe width="630" height="472.5" src="https://www.youtube.com/embed/wYAYEM7rSQ4" frameborder="0" allowfullscreen></iframe>
+
+                  </p>
+
+
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+	
+
+	<p>
+
+              <span>Investigated into the product "electric stove" in terms of "good" and "bad" in <a href="https://scpd.stanford.edu/search/publicCourseSearchDetails.do?method=load&courseId=12584">ME314 (Good Products, Bad Products) at Stanford</a>. In this project, In order to weave a story and build in our insights about the user experience of a particular product, I put together this discovery video to communicate our initial findings about electric stove - the product we chose to investigate into
+
+</span>
+
+                <iframe width="630" height="472.5" src="https://www.youtube.com/embed/43fAwq3dg8k" frameborder="0" allowfullscreen></iframe>
+
+                  </p>
+
+
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+	<p>
+
+              <span>Slinky Dog is a paper robot that my team and I did in a one-week long exercise based on Arduino in <a href="https://web.stanford.edu/group/me310/me310_2014/">a innovation design course at Stanford</a>. The purpose of the exercise was simply to show how easy it was to pick up the intimidating robotic/mechatronic skills. </span>
+
+	<iframe width="630" height="472.5" src="https://www.youtube.com/embed/hdxQc0vtCf0" frameborder="0" allowfullscreen></iframe>
+
+                                   </p>           
+
+              
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+
+
+   		<p>
+
+              <span>Built a paper bike "Wheely Wonka" in a two-week exercise project in <a href="https://web.stanford.edu/group/me310/me310_2014/">a innovation design course at Stanford</a></span><a href="files/Team2_WheelyWonka_DesignDoc_Final.pdf" title="Click to see the final documentation of the paper bike project" target="_blank"><img src="images/paper bike.png" alt="" class="image-full"/></a>
+
+                                              
+
+              </p>
+
+
+
+
+
+</div>
+
+
+
+				<a href="#" class="button">Back to top</a>
+
+			</div>		
+
+
+
+<div class="ebox3" id="mep">
+
+				<div class="hexagon"><span class="icon icon-heart "></span></div>
+
+				<div class="title">
+
+					<h2>Sketching and Crafts</h2>
+
+					<span class="byline">decorative, inspiring, artistic</span>
+
+				</div>
+
+			<div id="content">
+
+	<p>
+
+	<img src="images/sewing work.png" alt="" class="image-full"/>
+
+             <span></span>                                 
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+<p>
+
+	<img src="images/artifacts.png" alt="" class="image-full"/>
+
+             <span></span>                                 
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+	<p>
+
+              <img src="images/wedding craft.png" alt="" class="image-full"/>
+
+             <span></span>                                 
+
+              </p>
+
+	<p>
+
+              <img src="images/wedding craft 2.png" alt="" class="image-full"/>
+
+             
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+
+
+            	<p>
+	
+	<span>think in sketching, create in sketching, and take a rest in sketching =p</span>                                 
+
+	<table>
+
+	<tr>
+
+		<td> 
+
+		<a href="images/sketch-xiao-Howl's Moving Castle.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-Howl's Moving Castle.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+
+
+<a href="images/sketch-xiao-2008.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-2008.jpg" alt=""  class="image-tabled"/></a>
+		</td>
+
+		<td>
+
+<a href="images/sketch-xiao-dying flowers.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-dying flowers.jpg" class="image-tabled"/></a>
+
+		</td>
+
+	</tr>
+
+	<tr>
+
+		<td>
+
+<a href="images/sketch-xiao-flower.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-flower.jpg" class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+
+		<a href="images/sketch-xiao-gift for anna.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-gift for anna.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+ 
+<a href="images/sketch-xiao-purple dream.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-purple dream.jpg" class="image-tabled"/></a>
+
+		</td>
+
+	</tr>
+
+	<tr>
+
+		<td>
+
+<a href="images/sketch-xiao-storyboard.JPG" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-storyboard.JPG" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+
+		<a href="images/sketch-xiao-self-portrait.jpg" title="click to view it in large size" target="_blank"><img src="images/sketch-xiao-self-portrait.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+ 
+<a href="images/design-process.jpg" title="click to view it in large size" target="_blank"><img src="images/design-process.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+	</tr>
+	<tr>
+
+		<td>
+
+<a href="images/caligraphy.jpg" title="click to view it in large size" target="_blank"><img src="images/caligraphy.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+
+		<a href="images/broken heart.jpg" title="click to view it in large size" target="_blank"><img src="images/broken heart.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+		<td>
+
+<a href="files/odyssey_years_plan.pdf" title="click to view it in large size" target="_blank"><img src="images/odyssey_years_plan.jpg" alt=""  class="image-tabled"/></a>
+
+		</td>
+
+	</tr>
+
+	</table>
+
+	</p>
+
+
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+            	<p>
+
+             <span>"What you see is not all there is". Played around with clips, this video as an outcome - "What can we do with clips?"</span>                                 
+
+              	<iframe width="630" height="472.5" src="https://www.youtube.com/embed/7z3BfLdv3gY" frameborder="0" allowfullscreen></iframe>
+
+	  </p>
+
+
+
+                 </div>
+
+				<a href="#" class="button">Back to top</a>
+
+			</div>
+
+           <div class="ebox4" id="ofp">
+
+				<div class="hexagon"><span class="icon icon-leaf "></span></div>
+
+				<div class="title">
+
+					<h2>Life Experiments</h2>
+
+					<span class="byline">learning through life</span>
+
+				</div>
+
+			<div id="content">
+
+            	<p>
+
+             <span>Played with waste material in woodworking/paperworking, and applied Design Thinking in making a bed, coffee table, nightstand, etc.</span>                                 
+
+	<img src="images/woodwork.png" alt="" class="image-full"/>
+
+              </p>
+
+	<img src="images/seperator.jpg" class="image-centered" />
+
+
+
+   		<p>
+
+             <span>Cook a lot... =]</span>                                 
+
+	<img src="images/cook-a-lot.png" alt="" class="image-full"/>
+
+
+              </p>
+              <p>
+NOTE: Projects marked with * are spare-time exercises for entertainment.
+              </p>
+
+
+
+                 </div>
+
+				<a href="#" class="button">Back to top</a>
+
+			</div> 
+
+		</div>	
+
+
+
+	</div>
+
+
+
+
+
+</div> 
+
+
+
+
+
+
+
+
+
+<div id="stamp" class="container">
+
+	<div class="hexagon"><span class="icon icon-wrench"></span></div>
+
+</div>
+
+<div id="copyright" class="container">
+
+	<p>&copy; All rights reserved. | Design by <a href="https://feelinsly.github.io" target="_blank">Xiao Ge</a> built up on <a href="https://templated.co" rel="nofollow">TEMPLATED</a>.</p>
+
+</div>
+
+
+
+
+
+</body>
+
+</html>
