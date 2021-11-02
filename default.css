@@ -6,7 +6,7 @@ html, body
 
 {
 
-	height: 100%;
+	max-height: 100%;
 
 }
 
@@ -573,7 +573,7 @@ dd
 
 	display: block;
 
-	width: 100%;
+	max-width: 100%;
 
 }
 
@@ -585,7 +585,7 @@ dd
 
 	display: block;
 
-	width: 100%;
+	max-width: 100%;
 
 	margin: 0 0 2em 0;
 
@@ -677,7 +677,7 @@ dd
 
 	margin: 0 auto;
 
-	width: auto;
+	max-width: 100%;
 
 }
 
