@@ -495,7 +495,7 @@ dd
 /****----*media Queries----****/
 
 
-@media only screen and (max-width: 480px) /* and (min-width:320px)
+@media only screen and (max-width: 480px) /* and (min-width:320px) */
 
 {
 	.wrapper-demo {
@@ -506,7 +506,7 @@ dd
 
 }
 
-@media only screen and (max-width: 320px) /* and (min-width:240px)
+@media only screen and (max-width: 320px) /* and (min-width:240px)  */
 
 {
 
