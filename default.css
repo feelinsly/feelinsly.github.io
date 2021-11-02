@@ -1670,7 +1670,9 @@ ul.contact li a.icon-rss:before
 
 {
 
-	padding: 0em 7em;
+	padding: 0em 10%;
+	flex: 1 0 0%;
+
 
 }
 
