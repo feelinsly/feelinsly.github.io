@@ -500,12 +500,16 @@ dd
 {
 	.wrapper-demo {
 
-	width:  90%;
+	width:90%;
 
 	}
 	
 	.head-wrapper {
-	width:  90%;
+	width:90%;
+	}
+	
+	.featured-wrapper{
+	width:90%;
 	}
 
 }
@@ -515,11 +519,19 @@ dd
 {
 
 	.wrapper-demo {
-
-	width:  90%;
+	width:90%;
 
 	}
 
+		
+	.head-wrapper {
+	width:90%;
+	}
+	
+	.featured-wrapper{
+	width:90%;
+	}
+	
 	.wrapper-dropdown-2 {
 
 	font-size: 1em;
